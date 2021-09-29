@@ -23,10 +23,10 @@ type GRPC struct {
 
 type Connection struct {
 	Host            string        `yaml:"host" json:"host" validate:"required,hostname"`
-	Port            uint16        `yaml:"port" json:"port" validate:"required,hostname_port"`
-	ReadBufferSize  uint          `yaml:"readBufferSize" json:"read_buffer_size" validate:"required,gt=4096"`
-	WriteBufferSize uint          `yaml:"writeBufferSize" json:"write_buffer_size" validate:"required,gt=4096"`
-	MaxMessageSize  uint          `yaml:"maxMessageSize" json:"max_message_size" validate:"required,gt=2048"`
+	Port            uint16        `yaml:"port" json:"port" validate:"required,gt=0"`
+	ReadBufferSize  uint          `yaml:"readBufferSize" json:"read_buffer_size" validate:"required,gte=4096"`
+	WriteBufferSize uint          `yaml:"writeBufferSize" json:"write_buffer_size" validate:"required,gte=4096"`
+	MaxMessageSize  uint          `yaml:"maxMessageSize" json:"max_message_size" validate:"required,gte=2048"`
 	Insecure        bool          `yaml:"insecure" json:"insecure" validate:"required"`
 	Timeout         time.Duration `yaml:"timeout" json:"timeout" validate:"required,gt=0"`
 }
