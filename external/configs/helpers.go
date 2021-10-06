@@ -12,7 +12,7 @@ import (
 )
 
 func GetRootRepositoryPath() string {
-	out, err := exec.Command("bash", "-c", "git rev-parse --show-toplevel").Output()
+	out, err := exec.Command("sh", "-c", "git rev-parse --show-toplevel").Output()
 	if err != nil {
 		log.Fatal(err)
 	}
