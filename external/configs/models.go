@@ -14,6 +14,97 @@ type Base struct {
 	UseProfiling bool `yaml:"useProfiling" json:"use_profiling"`
 }
 
+type Informer struct {
+	Resource string        `yaml:"resource" json:"resource" validate:"required"`
+	Interval time.Duration `yaml:"interval" json:"interval" validate:"required,gt=0"`
+}
+
+type K8sCloudWatcher struct {
+	CtxPath   string     `yaml:"kubeConfigPath" json:"kube_config_path" validate:"required,file"`
+	Informers []Informer `yaml:"informers" json:"informers" validate:"required,gt=0"`
+}
+
+//func (cw *K8sCloudWatcher) MarshalJSON() ([]byte, error) {
+//	type alias struct {
+//		CtxPath          string `yaml:"kubeConfigPath" json:"kube_config_path"`
+//		InformerInterval string `yaml:"informerInterval" json:"informer_interval"`
+//	}
+//
+//	if cw == nil {
+//		*cw = K8sCloudWatcher{}
+//	}
+//
+//	return json.Marshal(alias{
+//		CtxPath:          cw.CtxPath,
+//		InformerInterval: ConvertDurationToStr(cw.InformerInterval),
+//	})
+//}
+//
+//func (cw *K8sCloudWatcher) UnmarshalJSON(data []byte) (err error) {
+//	type alias struct {
+//		CtxPath          string `yaml:"kubeConfigPath" json:"kube_config_path"`
+//		InformerInterval string `yaml:"informerInterval" json:"informer_interval"`
+//	}
+//	var tmp alias
+//	if err = json.Unmarshal(data, &tmp); err != nil {
+//		return err
+//	}
+//
+//	if cw == nil {
+//		*cw = K8sCloudWatcher{}
+//	}
+//
+//	cw.InformerInterval, err = str2duration.ParseDuration(tmp.InformerInterval)
+//	if err != nil {
+//		return err
+//	}
+//
+//	cw.CtxPath = tmp.CtxPath
+//
+//	return nil
+//}
+//
+//func (cw *K8sCloudWatcher) MarshalYAML() (interface{}, error) {
+//	type alias struct {
+//		CtxPath          string `yaml:"kubeConfigPath" json:"kube_config_path"`
+//		InformerInterval string `yaml:"informerInterval" json:"informer_interval"`
+//	}
+//
+//	if cw == nil {
+//		*cw = K8sCloudWatcher{}
+//	}
+//
+//	return alias{
+//		CtxPath:          cw.CtxPath,
+//		InformerInterval: ConvertDurationToStr(cw.InformerInterval),
+//	}, nil
+//}
+//
+//func (cw *K8sCloudWatcher) UnmarshalYAML(unmarshal func(interface{}) error) error {
+//	type alias struct {
+//		CtxPath          string `yaml:"kubeConfigPath" json:"kube_config_path"`
+//		InformerInterval string `yaml:"informerInterval" json:"informer_interval"`
+//	}
+//	var tmp alias
+//	err := unmarshal(&tmp)
+//	if err != nil {
+//		return err
+//	}
+//
+//	if cw == nil {
+//		*cw = K8sCloudWatcher{}
+//	}
+//
+//	cw.InformerInterval, err = str2duration.ParseDuration(tmp.InformerInterval)
+//	if err != nil {
+//		return err
+//	}
+//
+//	cw.CtxPath = tmp.CtxPath
+//
+//	return nil
+//}
+
 type GRPC struct {
 	Enabled       bool
 	UseReflection bool        `yaml:"useReflection" json:"use_reflection"`
