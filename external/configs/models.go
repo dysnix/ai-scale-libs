@@ -39,7 +39,7 @@ type Compression struct {
 }
 
 type Connection struct {
-	Host            string        `yaml:"host" json:"host" validate:"required,hostname"`
+	Host            string        `yaml:"host" json:"host" validate:"hostname"`
 	Port            uint16        `yaml:"port" json:"port" validate:"required,gt=0"`
 	ReadBufferSize  uint          `yaml:"readBufferSize" json:"read_buffer_size" validate:"required,gte=4096"`
 	WriteBufferSize uint          `yaml:"writeBufferSize" json:"write_buffer_size" validate:"required,gte=4096"`
