@@ -20,16 +20,22 @@ func RegisterCustomValidationsTags(ctx context.Context, validator *validator.Val
 		})
 	}
 
+	eg.Go(func() error {
+		return validator.RegisterValidation(GRPCHostTag, ValidateGRPCHost(validator))
+	})
+
 	return eg.Wait()
 }
 
 // ValidateGRPCHost implements validator.Func
-func ValidateGRPCHost(validator *validator.Validate, fl validator.FieldLevel) bool {
-	field := fl.Field().String()
-	if len(field) > 0 {
-		if err := validator.Var(field, "hostname"); err == nil {
-			return true
+func ValidateGRPCHost(validatorMain *validator.Validate) func(level validator.FieldLevel) bool {
+	return func(fl validator.FieldLevel) bool {
+		field := fl.Field().String()
+		if len(field) > 0 {
+			if err := validatorMain.Var(field, "hostname"); err == nil {
+				return true
+			}
 		}
+		return true
 	}
-	return true
 }
