@@ -50,13 +50,13 @@ type Connection struct {
 
 func (c *Connection) MarshalJSON() ([]byte, error) {
 	type alias struct {
-		Host            string `yaml:"host" json:"host"`
-		Port            uint16 `yaml:"port" json:"port"`
-		ReadBufferSize  string `yaml:"readBufferSize" json:"read_buffer_size"`
-		WriteBufferSize string `yaml:"writeBufferSize" json:"write_buffer_size"`
-		MaxMessageSize  string `yaml:"maxMessageSize" json:"max_message_size"`
-		Insecure        bool   `yaml:"insecure" json:"insecure"`
-		Timeout         string `yaml:"timeout" json:"timeout"`
+		Host            string  `yaml:"host" json:"host"`
+		Port            uint16  `yaml:"port" json:"port"`
+		ReadBufferSize  string  `yaml:"readBufferSize" json:"read_buffer_size"`
+		WriteBufferSize string  `yaml:"writeBufferSize" json:"write_buffer_size"`
+		MaxMessageSize  string  `yaml:"maxMessageSize" json:"max_message_size"`
+		Insecure        bool    `yaml:"insecure" json:"insecure"`
+		Timeout         *string `yaml:"timeout,omitempty" json:"timeout,omitempty"`
 	}
 
 	if c == nil {
@@ -70,19 +70,19 @@ func (c *Connection) MarshalJSON() ([]byte, error) {
 		WriteBufferSize: tc.BytesSize(float64(c.WriteBufferSize)),
 		MaxMessageSize:  tc.BytesSize(float64(c.MaxMessageSize)),
 		Insecure:        c.Insecure,
-		Timeout:         ConvertDurationToStr(c.Timeout),
+		Timeout:         tc.String(ConvertDurationToStr(c.Timeout)),
 	})
 }
 
 func (c *Connection) UnmarshalJSON(data []byte) (err error) {
 	type alias struct {
-		Host            string `yaml:"host" json:"host"`
-		Port            uint16 `yaml:"port" json:"port"`
-		ReadBufferSize  string `yaml:"readBufferSize" json:"read_buffer_size"`
-		WriteBufferSize string `yaml:"writeBufferSize" json:"write_buffer_size"`
-		MaxMessageSize  string `yaml:"maxMessageSize" json:"max_message_size"`
-		Insecure        bool   `yaml:"insecure" json:"insecure"`
-		Timeout         string `yaml:"timeout" json:"timeout"`
+		Host            string  `yaml:"host" json:"host"`
+		Port            uint16  `yaml:"port" json:"port"`
+		ReadBufferSize  string  `yaml:"readBufferSize" json:"read_buffer_size"`
+		WriteBufferSize string  `yaml:"writeBufferSize" json:"write_buffer_size"`
+		MaxMessageSize  string  `yaml:"maxMessageSize" json:"max_message_size"`
+		Insecure        bool    `yaml:"insecure" json:"insecure"`
+		Timeout         *string `yaml:"timeout,omitempty" json:"timeout,omitempty"`
 	}
 	var tmp alias
 	if err = json.Unmarshal(data, &tmp); err != nil {
@@ -93,9 +93,11 @@ func (c *Connection) UnmarshalJSON(data []byte) (err error) {
 		*c = Connection{}
 	}
 
-	c.Timeout, err = str2duration.ParseDuration(tmp.Timeout)
-	if err != nil {
-		return err
+	if tmp.Timeout != nil {
+		c.Timeout, err = str2duration.ParseDuration(*tmp.Timeout)
+		if err != nil {
+			return err
+		}
 	}
 
 	c.Host = tmp.Host
@@ -126,13 +128,13 @@ func (c *Connection) UnmarshalJSON(data []byte) (err error) {
 
 func (c *Connection) MarshalYAML() (interface{}, error) {
 	type alias struct {
-		Host            string `yaml:"host" json:"host"`
-		Port            uint16 `yaml:"port" json:"port"`
-		ReadBufferSize  string `yaml:"readBufferSize" json:"read_buffer_size"`
-		WriteBufferSize string `yaml:"writeBufferSize" json:"write_buffer_size"`
-		MaxMessageSize  string `yaml:"maxMessageSize" json:"max_message_size"`
-		Insecure        bool   `yaml:"insecure" json:"insecure"`
-		Timeout         string `yaml:"timeout" json:"timeout"`
+		Host            string  `yaml:"host" json:"host"`
+		Port            uint16  `yaml:"port" json:"port"`
+		ReadBufferSize  string  `yaml:"readBufferSize" json:"read_buffer_size"`
+		WriteBufferSize string  `yaml:"writeBufferSize" json:"write_buffer_size"`
+		MaxMessageSize  string  `yaml:"maxMessageSize" json:"max_message_size"`
+		Insecure        bool    `yaml:"insecure" json:"insecure"`
+		Timeout         *string `yaml:"timeout,omitempty" json:"timeout,omitempty"`
 	}
 
 	if c == nil {
@@ -146,19 +148,19 @@ func (c *Connection) MarshalYAML() (interface{}, error) {
 		WriteBufferSize: tc.BytesSize(float64(c.WriteBufferSize)),
 		MaxMessageSize:  tc.BytesSize(float64(c.MaxMessageSize)),
 		Insecure:        c.Insecure,
-		Timeout:         ConvertDurationToStr(c.Timeout),
+		Timeout:         tc.String(ConvertDurationToStr(c.Timeout)),
 	}, nil
 }
 
 func (c *Connection) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type alias struct {
-		Host            string `yaml:"host" json:"host"`
-		Port            uint16 `yaml:"port" json:"port"`
-		ReadBufferSize  string `yaml:"readBufferSize" json:"read_buffer_size"`
-		WriteBufferSize string `yaml:"writeBufferSize" json:"write_buffer_size"`
-		MaxMessageSize  string `yaml:"maxMessageSize" json:"max_message_size"`
-		Insecure        bool   `yaml:"insecure" json:"insecure"`
-		Timeout         string `yaml:"timeout" json:"timeout"`
+		Host            string  `yaml:"host" json:"host"`
+		Port            uint16  `yaml:"port" json:"port"`
+		ReadBufferSize  string  `yaml:"readBufferSize" json:"read_buffer_size"`
+		WriteBufferSize string  `yaml:"writeBufferSize" json:"write_buffer_size"`
+		MaxMessageSize  string  `yaml:"maxMessageSize" json:"max_message_size"`
+		Insecure        bool    `yaml:"insecure" json:"insecure"`
+		Timeout         *string `yaml:"timeout,omitempty" json:"timeout,omitempty"`
 	}
 	var tmp alias
 	err := unmarshal(&tmp)
@@ -170,9 +172,11 @@ func (c *Connection) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		*c = Connection{}
 	}
 
-	c.Timeout, err = str2duration.ParseDuration(tmp.Timeout)
-	if err != nil {
-		return err
+	if tmp.Timeout != nil {
+		c.Timeout, err = str2duration.ParseDuration(*tmp.Timeout)
+		if err != nil {
+			return err
+		}
 	}
 
 	c.Host = tmp.Host
