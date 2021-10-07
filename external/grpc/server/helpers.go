@@ -35,30 +35,30 @@ func CheckNetErrClosing(err error) error {
 	return nil
 }
 
-func SetGrpcServerOptions(conf *configs.GRPC, internalInterceptors ...grpc.UnaryServerInterceptor) ([]grpc.ServerOption, error) {
+func SetGrpcServerOptions(conf *configs.GRPC, internalInterceptors ...grpc.UnaryServerInterceptor) (options []grpc.ServerOption, err error) {
 	unaryInterceptors := make([]grpc.UnaryServerInterceptor, 0)
 	streamInterceptors := make([]grpc.StreamServerInterceptor, 0)
-
-	options := []grpc.ServerOption{
-		grpc.KeepaliveParams(
-			keepalive.ServerParameters{
-				Time:    conf.Keepalive.Time,
-				Timeout: conf.Keepalive.Timeout,
-			},
-		),
-	}
 
 	if conf.Conn.Timeout > 0 {
 		options = append(options, grpc.ConnectionTimeout(conf.Conn.Timeout))
 	}
 
-	if conf.Keepalive.EnforcementPolicy != nil {
-		options = append(options, grpc.KeepaliveEnforcementPolicy(
-			keepalive.EnforcementPolicy{
-				MinTime:             conf.Keepalive.EnforcementPolicy.MinTime,
-				PermitWithoutStream: conf.Keepalive.EnforcementPolicy.PermitWithoutStream,
+	if conf.Keepalive != nil {
+		options = append(options, grpc.KeepaliveParams(
+			keepalive.ServerParameters{
+				Time:    conf.Keepalive.Time,
+				Timeout: conf.Keepalive.Timeout,
 			},
 		))
+
+		if conf.Keepalive.EnforcementPolicy != nil {
+			options = append(options, grpc.KeepaliveEnforcementPolicy(
+				keepalive.EnforcementPolicy{
+					MinTime:             conf.Keepalive.EnforcementPolicy.MinTime,
+					PermitWithoutStream: conf.Keepalive.EnforcementPolicy.PermitWithoutStream,
+				},
+			))
+		}
 	}
 
 	if conf.Conn.ReadBufferSize > 0 {

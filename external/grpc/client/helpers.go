@@ -24,16 +24,17 @@ const (
 func SetGrpcClientOptions(conf *configs.GRPC, internalInterceptors ...grpc.UnaryClientInterceptor) (options []grpc.DialOption, err error) {
 	unaryClientInterceptors := make([]grpc.UnaryClientInterceptor, 0)
 
-	options = []grpc.DialOption{
-		//grpc.WithDefaultCallOptions(grpc.UseCompressor(gzip.Name)),
-		//grpc.WithDefaultCallOptions(grpc.UseCompressor(zstd_compressor.Name)),
-		grpc.WithKeepaliveParams(
-			keepalive.ClientParameters{
-				Time:                conf.Keepalive.Time,
-				Timeout:             conf.Keepalive.Timeout,
-				PermitWithoutStream: conf.Keepalive.EnforcementPolicy.PermitWithoutStream,
-			},
-		),
+	if conf.Keepalive != nil {
+		options = append(options,
+			//grpc.WithDefaultCallOptions(grpc.UseCompressor(gzip.Name)),
+			//grpc.WithDefaultCallOptions(grpc.UseCompressor(zstd_compressor.Name)),
+			grpc.WithKeepaliveParams(
+				keepalive.ClientParameters{
+					Time:                conf.Keepalive.Time,
+					Timeout:             conf.Keepalive.Timeout,
+					PermitWithoutStream: conf.Keepalive.EnforcementPolicy.PermitWithoutStream,
+				},
+			))
 	}
 
 	switch conf.Compression.Type {

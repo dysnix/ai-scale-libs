@@ -30,7 +30,7 @@ type GRPC struct {
 	UseReflection bool        `yaml:"useReflection" json:"use_reflection"`
 	Compression   Compression `yaml:"compression" json:"compression"`
 	Conn          *Connection `yaml:"connection" json:"connection" validate:"required"`
-	Keepalive     *Keepalive  `yaml:"keepalive" json:"keepalive" validate:"required"`
+	Keepalive     *Keepalive  `yaml:"keepalive" json:"keepalive"`
 }
 
 type Compression struct {
