@@ -7,6 +7,10 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const (
+	GRPCHostTag = "grpc_host"
+)
+
 // RegisterCustomValidationsTags registers all custom validation tags
 func RegisterCustomValidationsTags(ctx context.Context, validator *validator.Validate, in map[string]func(fl validator.FieldLevel) bool) error {
 	eg, _ := errgroup.WithContext(ctx)
