@@ -7,8 +7,6 @@
 *.tgz
 
 ### Golang
-# enums generation files
-*_enum.go
 # config generation
 /tmp/
 # Binaries for programs and plugins

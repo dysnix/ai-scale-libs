@@ -48,6 +48,10 @@ func SetGrpcServerOptions(conf *configs.GRPC, internalInterceptors ...grpc.Unary
 		),
 	}
 
+	if conf.Conn.Timeout > 0 {
+		options = append(options, grpc.ConnectionTimeout(conf.Conn.Timeout))
+	}
+
 	if conf.Keepalive.EnforcementPolicy != nil {
 		options = append(options, grpc.KeepaliveEnforcementPolicy(
 			keepalive.EnforcementPolicy{

@@ -2,6 +2,8 @@ package client
 
 import (
 	"context"
+	"github.com/dysnix/ai-scale-libs/external/enums"
+	"google.golang.org/grpc/encoding/gzip"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"google.golang.org/grpc"
@@ -24,7 +26,7 @@ func SetGrpcClientOptions(conf *configs.GRPC, internalInterceptors ...grpc.Unary
 
 	options = []grpc.DialOption{
 		//grpc.WithDefaultCallOptions(grpc.UseCompressor(gzip.Name)),
-		grpc.WithDefaultCallOptions(grpc.UseCompressor(zstd_compressor.Name)),
+		//grpc.WithDefaultCallOptions(grpc.UseCompressor(zstd_compressor.Name)),
 		grpc.WithKeepaliveParams(
 			keepalive.ClientParameters{
 				Time:                conf.Keepalive.Time,
@@ -32,6 +34,21 @@ func SetGrpcClientOptions(conf *configs.GRPC, internalInterceptors ...grpc.Unary
 				PermitWithoutStream: conf.Keepalive.EnforcementPolicy.PermitWithoutStream,
 			},
 		),
+	}
+
+	switch conf.Compression.Type {
+	case enums.Gzip:
+		options = append(options, grpc.WithDefaultCallOptions(grpc.UseCompressor(gzip.Name)))
+	case enums.Zstd:
+		options = append(options, grpc.WithDefaultCallOptions(grpc.UseCompressor(zstd_compressor.Name)))
+	}
+
+	if conf.Conn.Timeout > 0 {
+		options = append(options, grpc.WithConnectParams(
+			grpc.ConnectParams{
+				MinConnectTimeout: conf.Conn.Timeout,
+			},
+		))
 	}
 
 	if conf.Conn.ReadBufferSize > 0 {
