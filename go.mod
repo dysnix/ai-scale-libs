@@ -3,12 +3,14 @@ module github.com/dysnix/ai-scale-libs
 go 1.15
 
 require (
+	github.com/dysnix/ai-scale-proto v0.0.0-20211008151433-90bff0df1026 // indirect
 	github.com/go-playground/validator/v10 v10.9.0
 	github.com/golang/protobuf v1.5.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/klauspost/compress v1.13.6
 	github.com/xhit/go-str2duration/v2 v2.0.0
 	go.uber.org/zap v1.19.0
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	google.golang.org/grpc v1.41.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	k8s.io/api v0.22.2
