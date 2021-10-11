@@ -29,14 +29,8 @@ type GRPC struct {
 	Enabled       bool
 	UseReflection bool        `yaml:"useReflection" json:"use_reflection"`
 	Compression   Compression `yaml:"compression" json:"compression"`
-	Health        *Health     `yaml:"health,omitempty" json:"health,omitempty"`
 	Conn          *Connection `yaml:"connection" json:"connection" validate:"required"`
 	Keepalive     *Keepalive  `yaml:"keepalive" json:"keepalive"`
-}
-
-type Health struct {
-	Host string `yaml:"host" json:"host" validate:"grpc_host"`
-	Port uint16 `yaml:"port" json:"port" validate:"required,gt=0"`
 }
 
 type Compression struct {
