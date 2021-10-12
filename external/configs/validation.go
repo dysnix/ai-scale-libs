@@ -2,7 +2,6 @@ package configs
 
 import (
 	"context"
-
 	"github.com/go-playground/validator/v10"
 	"golang.org/x/sync/errgroup"
 )
@@ -14,9 +13,11 @@ const (
 // RegisterCustomValidationsTags registers all custom validation tags
 func RegisterCustomValidationsTags(ctx context.Context, validator *validator.Validate, in map[string]func(fl validator.FieldLevel) bool) error {
 	eg, _ := errgroup.WithContext(ctx)
-	for tag, callback := range in {
+	for tag, _ := range in {
+		newTag := tag
+		newCallback := in[tag]
 		eg.Go(func() error {
-			return validator.RegisterValidation(tag, callback)
+			return validator.RegisterValidation(newTag, newCallback)
 		})
 	}
 
@@ -35,6 +36,8 @@ func ValidateGRPCHost(validatorMain *validator.Validate) func(level validator.Fi
 			if err := validatorMain.Var(field, "hostname"); err == nil {
 				return true
 			}
+
+			return false
 		}
 		return true
 	}

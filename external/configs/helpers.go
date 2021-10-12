@@ -1,13 +1,16 @@
 package configs
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
 	"net/url"
 	"os"
 	"os/exec"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -69,4 +72,27 @@ func ConvertDurationToStr(d time.Duration) (result string) {
 	}
 
 	return result
+}
+
+var onlyOneSignalHandler = make(chan struct{})
+
+func SetupSignalHandler(r SignalStopper) context.Context {
+	close(onlyOneSignalHandler) // panics when called twice
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	c := make(chan os.Signal, 2)
+	signal.Notify(c,
+		syscall.SIGTERM,
+		syscall.SIGINT,
+		syscall.SIGABRT)
+	go func() {
+		<-c
+		r.Stop()
+		cancel()
+		<-c
+		os.Exit(1) // second signal. Exit directly.
+	}()
+
+	return ctx
 }
