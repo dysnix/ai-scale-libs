@@ -76,7 +76,7 @@ func ConvertDurationToStr(d time.Duration) (result string) {
 
 var onlyOneSignalHandler = make(chan struct{})
 
-func SetupSignalHandler(r SignalStopper) context.Context {
+func SetupSignalHandler(l ...interface{}) context.Context {
 	close(onlyOneSignalHandler) // panics when called twice
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -88,7 +88,16 @@ func SetupSignalHandler(r SignalStopper) context.Context {
 		syscall.SIGABRT)
 	go func() {
 		<-c
-		r.Stop()
+		for _, cl := range l {
+			switch closer := cl.(type) {
+			case SignalStopper:
+				closer.Stop()
+			case SignalCloser:
+				closer.Close()
+			case SignalCloserWithErr:
+				_ = closer.Close()
+			}
+		}
 		cancel()
 		<-c
 		os.Exit(1) // second signal. Exit directly.

@@ -2,11 +2,11 @@ package configs
 
 import (
 	"encoding/json"
-	"github.com/dysnix/ai-scale-libs/external/enums"
 	"time"
 
 	str2duration "github.com/xhit/go-str2duration/v2"
 
+	"github.com/dysnix/ai-scale-libs/external/enums"
 	tc "github.com/dysnix/ai-scale-libs/external/types_convertation"
 )
 
@@ -384,4 +384,113 @@ func (ep *EnforcementPolicy) UnmarshalYAML(unmarshal func(interface{}) error) er
 	ep.MinTime, err = str2duration.ParseDuration(tmp.MinTime)
 
 	return err
+}
+
+type HTTPTransport struct {
+	MaxIdleConnDuration time.Duration `yaml:"maxIdleConnDuration" json:"max_idle_conn_duration" validate:"required,gt=0"`
+	ReadTimeout         time.Duration `yaml:"readTimeout" json:"read_timeout" validate:"required,gt=0"`
+	WriteTimeout        time.Duration `yaml:"writeTimeout" json:"write_timeout" validate:"required,gt=0"`
+}
+
+func (t *HTTPTransport) MarshalJSON() ([]byte, error) {
+	type alias struct {
+		MaxIdleConnDuration string `yaml:"maxIdleConnDuration" json:"max_idle_conn_duration"`
+		ReadTimeout         string `yaml:"readTimeout" json:"read_timeout"`
+		WriteTimeout        string `yaml:"writeTimeout" json:"write_timeout"`
+	}
+
+	if t == nil {
+		*t = HTTPTransport{}
+	}
+
+	return json.Marshal(alias{
+		MaxIdleConnDuration: HumanDuration(t.MaxIdleConnDuration),
+		ReadTimeout:         HumanDuration(t.ReadTimeout),
+		WriteTimeout:        HumanDuration(t.WriteTimeout),
+	})
+}
+
+func (t *HTTPTransport) UnmarshalJSON(data []byte) (err error) {
+	type alias struct {
+		MaxIdleConnDuration string `yaml:"maxIdleConnDuration" json:"max_idle_conn_duration"`
+		ReadTimeout         string `yaml:"readTimeout" json:"read_timeout"`
+		WriteTimeout        string `yaml:"writeTimeout" json:"write_timeout"`
+	}
+	var tmp alias
+	if err = json.Unmarshal(data, &tmp); err != nil {
+		return err
+	}
+
+	if t == nil {
+		*t = HTTPTransport{}
+	}
+
+	t.MaxIdleConnDuration, err = time.ParseDuration(tmp.MaxIdleConnDuration)
+	if err != nil {
+		return err
+	}
+
+	t.ReadTimeout, err = time.ParseDuration(tmp.ReadTimeout)
+	if err != nil {
+		return err
+	}
+
+	t.WriteTimeout, err = time.ParseDuration(tmp.WriteTimeout)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (t *HTTPTransport) MarshalYAML() (interface{}, error) {
+	type alias struct {
+		MaxIdleConnDuration string `yaml:"maxIdleConnDuration" json:"max_idle_conn_duration"`
+		ReadTimeout         string `yaml:"readTimeout" json:"read_timeout"`
+		WriteTimeout        string `yaml:"writeTimeout" json:"write_timeout"`
+	}
+
+	if t == nil {
+		*t = HTTPTransport{}
+	}
+
+	return alias{
+		MaxIdleConnDuration: HumanDuration(t.MaxIdleConnDuration),
+		ReadTimeout:         HumanDuration(t.ReadTimeout),
+		WriteTimeout:        HumanDuration(t.WriteTimeout),
+	}, nil
+}
+
+func (t *HTTPTransport) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type alias struct {
+		MaxIdleConnDuration string `yaml:"maxIdleConnDuration" json:"max_idle_conn_duration"`
+		ReadTimeout         string `yaml:"readTimeout" json:"read_timeout"`
+		WriteTimeout        string `yaml:"writeTimeout" json:"write_timeout"`
+	}
+	var tmp alias
+	err := unmarshal(&tmp)
+	if err != nil {
+		return err
+	}
+
+	if t == nil {
+		*t = HTTPTransport{}
+	}
+
+	t.MaxIdleConnDuration, err = time.ParseDuration(tmp.MaxIdleConnDuration)
+	if err != nil {
+		return err
+	}
+
+	t.ReadTimeout, err = time.ParseDuration(tmp.ReadTimeout)
+	if err != nil {
+		return err
+	}
+
+	t.WriteTimeout, err = time.ParseDuration(tmp.WriteTimeout)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
