@@ -7,7 +7,9 @@ require (
 	github.com/go-playground/validator/v10 v10.9.0
 	github.com/golang/protobuf v1.5.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
+	github.com/itchyny/timefmt-go v0.1.3
 	github.com/klauspost/compress v1.13.6
+	github.com/stretchr/testify v1.7.0
 	github.com/valyala/fasthttp v1.31.0
 	github.com/xhit/go-str2duration/v2 v2.0.0
 	go.uber.org/zap v1.19.0
