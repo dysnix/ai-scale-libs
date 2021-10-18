@@ -21,7 +21,7 @@ func TestValidateRequiredIfNotEmpty(t *testing.T) {
 
 	t.Run("", func(t *testing.T) {
 		testData := &tmpStruct{
-			//SomeTypeFirst:  false,
+			SomeTypeFirst:  false,
 			SomeTypeSecond: 10,
 		}
 		err = testValidator.Struct(testData)
