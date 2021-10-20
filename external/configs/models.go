@@ -11,8 +11,8 @@ import (
 )
 
 type Base struct {
-	IsDebugMode  bool `yaml:"debugMode" json:"debug_mode"`
-	UseProfiling bool `yaml:"useProfiling" json:"use_profiling"`
+	IsDebugMode bool `yaml:"debugMode" json:"debug_mode"`
+	Profiling   Profiling
 }
 
 type Profiling struct {
