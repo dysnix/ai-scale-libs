@@ -138,7 +138,7 @@ func ValidatePortIfEnabled(validatorMain *validator.Validate) func(level validat
 
 		if !otherFieldVal.IsZero() {
 			result := fl.Field().Uint()
-			err := validatorMain.Var(result, "numeric,gte=8000,lte=9999")
+			err := validatorMain.Var(result, "numeric,gte=6060,lte=9999")
 			if err == nil {
 				return true
 			}
