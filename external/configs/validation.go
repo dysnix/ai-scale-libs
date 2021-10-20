@@ -2,15 +2,18 @@ package configs
 
 import (
 	"context"
+	//"fmt"
 	"reflect"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/robfig/cron/v3"
 )
 
 const (
 	GRPCHostTag             = "grpc_host"
 	RequiredIfNotNilOrEmpty = "require_if_not_nil_or_empty"
+	CronTag                 = "cron"
 )
 
 // RegisterCustomValidationsTags registers all custom validation tags
@@ -28,6 +31,10 @@ func RegisterCustomValidationsTags(ctx context.Context, validator *validator.Val
 	}
 
 	if err = validator.RegisterValidation(RequiredIfNotNilOrEmpty, ValidateRequiredIfNotEmpty); err != nil {
+		return err
+	}
+
+	if err = validator.RegisterValidation(CronTag, ValidateCronString); err != nil {
 		return err
 	}
 
@@ -60,8 +67,8 @@ func ValidateRequiredIfNotEmpty(fl validator.FieldLevel) bool {
 	}
 
 	var (
-		otherFieldName     string
-		otherFieldValCheck string
+		otherFieldName string
+		//otherFieldValCheck string
 	)
 
 	if len(params) >= 1 {
@@ -70,11 +77,11 @@ func ValidateRequiredIfNotEmpty(fl validator.FieldLevel) bool {
 		otherFieldName = fl.Param()
 	}
 
-	if len(params) >= 2 {
-		otherFieldValCheck = params[1]
-	} else {
-		otherFieldValCheck = fl.Param()
-	}
+	//if len(params) >= 2 {
+	//	otherFieldValCheck = params[1]
+	//} else {
+	//	otherFieldValCheck = fl.Param()
+	//}
 
 	var otherFieldVal reflect.Value
 	if fl.Parent().Kind() == reflect.Ptr {
@@ -83,12 +90,17 @@ func ValidateRequiredIfNotEmpty(fl validator.FieldLevel) bool {
 		otherFieldVal = fl.Parent().FieldByName(otherFieldName)
 	}
 
-	if otherFieldValCheck != otherFieldVal.String() {
-		if !isNilOrZeroValue(fl.Field()) {
-			return true
-		}
-		return false
+	if !otherFieldVal.IsZero() {
+		result := !fl.Field().IsZero()
+		return result
 	}
+	//if otherFieldValCheck != otherFieldVal.String() {
+	//	fmt.Println(otherFieldVal.IsZero().String(), fl.Field().String(), fl.Field().IsZero())
+	//	if isNilOrZeroValue(fl.Field()) {
+	//		return true
+	//	}
+	//	return false
+	//}
 
 	return true
 }
@@ -100,4 +112,18 @@ func isNilOrZeroValue(field reflect.Value) bool {
 	default:
 		return field.IsZero()
 	}
+}
+
+// ValidateCronString implements validator.Func for validate cron string format
+func ValidateCronString(fl validator.FieldLevel) bool {
+	field := fl.Field().String()
+	if len(field) > 0 {
+		if _, err := cron.NewParser(cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor).
+			Parse(field); err == nil {
+			return true
+		}
+
+		return false
+	}
+	return true
 }

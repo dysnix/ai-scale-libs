@@ -15,6 +15,8 @@ type Base struct {
 	UseProfiling bool `yaml:"useProfiling" json:"use_profiling"`
 }
 
+type CronStr string
+
 type Informer struct {
 	Resource string        `yaml:"resource" json:"resource" validate:"required"`
 	Interval time.Duration `yaml:"interval" json:"interval" validate:"required,gt=0"`
