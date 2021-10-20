@@ -15,6 +15,12 @@ type Base struct {
 	UseProfiling bool `yaml:"useProfiling" json:"use_profiling"`
 }
 
+type Profiling struct {
+	Enabled bool
+	Host    string `validate:"host_if_enabled"`
+	Port    uint16 `validate:"port_if_enabled"`
+}
+
 type CronStr string
 
 type Informer struct {

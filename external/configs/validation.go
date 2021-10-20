@@ -2,7 +2,6 @@ package configs
 
 import (
 	"context"
-	//"fmt"
 	"reflect"
 	"strings"
 
@@ -14,6 +13,8 @@ const (
 	GRPCHostTag             = "grpc_host"
 	RequiredIfNotNilOrEmpty = "require_if_not_nil_or_empty"
 	CronTag                 = "cron"
+	HostIfEnabledTag        = "host_if_enabled"
+	PortIfEnabledTag        = "port_if_enabled"
 )
 
 // RegisterCustomValidationsTags registers all custom validation tags
@@ -35,6 +36,14 @@ func RegisterCustomValidationsTags(ctx context.Context, validator *validator.Val
 	}
 
 	if err = validator.RegisterValidation(CronTag, ValidateCronString); err != nil {
+		return err
+	}
+
+	if err = validator.RegisterValidation(HostIfEnabledTag, ValidateHostIfEnabled(validator)); err != nil {
+		return err
+	}
+
+	if err = validator.RegisterValidation(PortIfEnabledTag, ValidatePortIfEnabled(validator)); err != nil {
 		return err
 	}
 
@@ -68,7 +77,6 @@ func ValidateRequiredIfNotEmpty(fl validator.FieldLevel) bool {
 
 	var (
 		otherFieldName string
-		//otherFieldValCheck string
 	)
 
 	if len(params) >= 1 {
@@ -76,12 +84,6 @@ func ValidateRequiredIfNotEmpty(fl validator.FieldLevel) bool {
 	} else {
 		otherFieldName = fl.Param()
 	}
-
-	//if len(params) >= 2 {
-	//	otherFieldValCheck = params[1]
-	//} else {
-	//	otherFieldValCheck = fl.Param()
-	//}
 
 	var otherFieldVal reflect.Value
 	if fl.Parent().Kind() == reflect.Ptr {
@@ -94,23 +96,57 @@ func ValidateRequiredIfNotEmpty(fl validator.FieldLevel) bool {
 		result := !fl.Field().IsZero()
 		return result
 	}
-	//if otherFieldValCheck != otherFieldVal.String() {
-	//	fmt.Println(otherFieldVal.IsZero().String(), fl.Field().String(), fl.Field().IsZero())
-	//	if isNilOrZeroValue(fl.Field()) {
-	//		return true
-	//	}
-	//	return false
-	//}
 
 	return true
 }
 
-func isNilOrZeroValue(field reflect.Value) bool {
-	switch field.Kind() {
-	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
-		return !field.IsNil()
-	default:
-		return field.IsZero()
+// ValidateHostIfEnabled implements validator.Func for validate host string if struct enabled
+func ValidateHostIfEnabled(validatorMain *validator.Validate) func(level validator.FieldLevel) bool {
+	return func(fl validator.FieldLevel) bool {
+		var otherFieldVal reflect.Value
+		if fl.Parent().Kind() == reflect.Ptr {
+			otherFieldVal = fl.Parent().Elem().FieldByName("Enabled")
+		} else {
+			otherFieldVal = fl.Parent().FieldByName("Enabled")
+		}
+
+		if !otherFieldVal.IsZero() {
+			if err := validatorMain.Var(fl.Field().String(), "hostname"); err == nil {
+				return true
+			}
+
+			if err := validatorMain.Var(fl.Field().String(), "ip"); err == nil {
+				return true
+			}
+
+			return false
+		}
+
+		return true
+	}
+}
+
+// ValidatePortIfEnabled implements validator.Func for validate port value if struct enabled
+func ValidatePortIfEnabled(validatorMain *validator.Validate) func(level validator.FieldLevel) bool {
+	return func(fl validator.FieldLevel) bool {
+		var otherFieldVal reflect.Value
+		if fl.Parent().Kind() == reflect.Ptr {
+			otherFieldVal = fl.Parent().Elem().FieldByName("Enabled")
+		} else {
+			otherFieldVal = fl.Parent().FieldByName("Enabled")
+		}
+
+		if !otherFieldVal.IsZero() {
+			result := fl.Field().Uint()
+			err := validatorMain.Var(result, "numeric,gte=8000,lte=9999")
+			if err == nil {
+				return true
+			}
+
+			return false
+		}
+
+		return true
 	}
 }
 
