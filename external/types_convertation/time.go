@@ -1,8 +1,13 @@
 package types_convertation
 
 import (
+	"errors"
 	"strconv"
 	"time"
+)
+
+const (
+	ZeroDurationErr = "zero time duration"
 )
 
 func ParseMillisecondUnixTimestamp(s interface{}) (res time.Time, err error) {
@@ -35,8 +40,12 @@ func ParseMillisecondUnixTimestamp(s interface{}) (res time.Time, err error) {
 		ts = int64(tmp)
 	}
 
-	sec := ts / 1000
-	msec := ts % 1000
+	if ts > 0 {
+		sec := ts / 1000
+		msec := ts % 1000
 
-	return time.Unix(sec, msec*int64(time.Millisecond)), nil
+		return time.Unix(sec, msec*int64(time.Millisecond)), nil
+	}
+
+	return res, errors.New(ZeroDurationErr)
 }
