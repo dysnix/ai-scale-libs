@@ -13,8 +13,6 @@ func ParseMillisecondUnixTimestamp(s interface{}) (res time.Time, err error) {
 		if err != nil {
 			return time.Time{}, err
 		}
-	case uint64:
-		ts = int64(tmp)
 	case int8:
 		ts = int64(tmp)
 	case int16:
@@ -32,6 +30,9 @@ func ParseMillisecondUnixTimestamp(s interface{}) (res time.Time, err error) {
 	case uint16:
 		ts = int64(tmp)
 	case uint32:
+		ts = int64(tmp)
+	case uint64:
+		ts = int64(tmp)
 	}
 
 	sec := ts / 1000
