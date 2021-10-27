@@ -8,7 +8,7 @@ import (
 
 type keyCtx string
 
-func addToContext(ctx context.Context, key string, data interface{}) context.Context {
+func AddToContext(ctx context.Context, key string, data interface{}) context.Context {
 	if req, ok := ctx.(*fasthttp.RequestCtx); ok {
 		req.SetUserValue(key, data)
 		return req
@@ -17,7 +17,7 @@ func addToContext(ctx context.Context, key string, data interface{}) context.Con
 	return context.WithValue(ctx, keyCtx(key), data)
 }
 
-func getFromContext(ctx context.Context, key string) interface{} {
+func GetFromContext(ctx context.Context, key string) interface{} {
 	if req, ok := ctx.(*fasthttp.RequestCtx); ok {
 		return req.UserValue(key)
 	}
