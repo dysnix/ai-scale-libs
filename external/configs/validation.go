@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/robfig/cron/v3"
+	"github.com/xhit/go-str2duration/v2"
 )
 
 const (
@@ -15,6 +16,7 @@ const (
 	CronTag                 = "cron"
 	HostIfEnabledTag        = "host_if_enabled"
 	PortIfEnabledTag        = "port_if_enabled"
+	DurationTag             = "duration"
 )
 
 // RegisterCustomValidationsTags registers all custom validation tags
@@ -44,6 +46,10 @@ func RegisterCustomValidationsTags(ctx context.Context, validator *validator.Val
 	}
 
 	if err = validator.RegisterValidation(PortIfEnabledTag, ValidatePortIfEnabled(validator)); err != nil {
+		return err
+	}
+
+	if err = validator.RegisterValidation(DurationTag, ValidateDuration); err != nil {
 		return err
 	}
 
@@ -162,4 +168,15 @@ func ValidateCronString(fl validator.FieldLevel) bool {
 		return false
 	}
 	return true
+}
+
+// ValidateDuration implements validator.Func for validate duration values
+func ValidateDuration(fl validator.FieldLevel) bool {
+	field := fl.Field().String()
+	if len(field) > 0 {
+		if _, err := str2duration.ParseDuration(field); err == nil {
+			return true
+		}
+	}
+	return false
 }
