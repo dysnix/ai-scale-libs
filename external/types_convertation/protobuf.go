@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/dysnix/ai-scale-proto/external/proto/enums"
 	"github.com/golang/protobuf/ptypes"
 	tspb "github.com/golang/protobuf/ptypes/timestamp"
 )
@@ -30,4 +31,18 @@ func AdaptPbTimestampToTime(protoTime *tspb.Timestamp) (*time.Time, error) {
 		return nil, fmt.Errorf("proto time parameter is empty or zero")
 	}
 	return TimeToTimePtr(time.Unix(protoTime.GetSeconds(), int64(protoTime.GetNanos()))), nil
+}
+
+var _metrics = map[enums.MetricsType]string{
+	enums.MetricsType_Memory:        "memory",
+	enums.MetricsType_Cpu:           "cpu",
+	enums.MetricsType_Disk:          "disk",
+	enums.MetricsType_Network:       "network",
+	enums.MetricsType_Nginx:         "nginx",
+	enums.MetricsType_Logs:          "logs",
+	enums.MetricsType_ReplicasCount: "replicas_count",
+}
+
+func GetMetricTypeStr(pb enums.MetricsType) string {
+	return _metrics[pb]
 }
