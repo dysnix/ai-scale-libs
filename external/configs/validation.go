@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/robfig/cron/v3"
+	passwordvalidator "github.com/wagslane/go-password-validator"
 	"github.com/xhit/go-str2duration/v2"
 )
 
@@ -17,6 +18,9 @@ const (
 	HostIfEnabledTag        = "host_if_enabled"
 	PortIfEnabledTag        = "port_if_enabled"
 	DurationTag             = "duration"
+	PassEntropyTag          = "pass_entropy"
+
+	minEntropyBits = 60
 )
 
 // RegisterCustomValidationsTags registers all custom validation tags
@@ -50,6 +54,10 @@ func RegisterCustomValidationsTags(ctx context.Context, validator *validator.Val
 	}
 
 	if err = validator.RegisterValidation(DurationTag, ValidateDuration); err != nil {
+		return err
+	}
+
+	if err = validator.RegisterValidation(PassEntropyTag, ValidatePasswordEntropy); err != nil {
 		return err
 	}
 
@@ -175,6 +183,17 @@ func ValidateDuration(fl validator.FieldLevel) bool {
 	field := fl.Field().String()
 	if len(field) > 0 {
 		if _, err := str2duration.ParseDuration(field); err == nil {
+			return true
+		}
+	}
+	return false
+}
+
+// ValidatePasswordEntropy implements validator.Func for validate password string entropy values
+func ValidatePasswordEntropy(fl validator.FieldLevel) bool {
+	field := fl.Field().String()
+	if len(field) > 0 {
+		if err := passwordvalidator.Validate(field, minEntropyBits); err == nil {
 			return true
 		}
 	}
