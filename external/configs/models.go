@@ -13,6 +13,13 @@ import (
 type Base struct {
 	IsDebugMode bool `yaml:"debugMode" json:"debug_mode"`
 	Profiling   Profiling
+	Monitoring  Monitoring
+}
+
+type Monitoring struct {
+	Enabled bool
+	Host    string `validate:"host_if_enabled"`
+	Port    uint16 `validate:"port_if_enabled"`
 }
 
 type Profiling struct {
