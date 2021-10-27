@@ -19,6 +19,11 @@ type transport struct {
 	client *fasthttp.Client
 }
 
+type FastHttpTransport interface {
+	http.RoundTripper
+	configs.SignalCloser
+}
+
 func NewTransport(opts *configs.HTTPTransport, tlsConf ...tr.TLSConfig) *transport {
 	var tlsC *tls.Config
 	if len(tlsConf) > 0 {
