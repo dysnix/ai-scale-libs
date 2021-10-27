@@ -395,9 +395,9 @@ func (ep *EnforcementPolicy) UnmarshalYAML(unmarshal func(interface{}) error) er
 }
 
 type HTTPTransport struct {
-	MaxIdleConnDuration time.Duration `yaml:"maxIdleConnDuration" json:"max_idle_conn_duration" validate:"required,gt=0"`
-	ReadTimeout         time.Duration `yaml:"readTimeout" json:"read_timeout" validate:"required,gt=0"`
-	WriteTimeout        time.Duration `yaml:"writeTimeout" json:"write_timeout" validate:"required,gt=0"`
+	MaxIdleConnDuration time.Duration `yaml:"maxIdleConnDuration" json:"max_idle_conn_duration" validate:"required,gt=0,duration"`
+	ReadTimeout         time.Duration `yaml:"readTimeout" json:"read_timeout" validate:"required,gt=0,duration"`
+	WriteTimeout        time.Duration `yaml:"writeTimeout" json:"write_timeout" validate:"required,gt=0,duration"`
 }
 
 func (t *HTTPTransport) MarshalJSON() ([]byte, error) {
@@ -433,17 +433,17 @@ func (t *HTTPTransport) UnmarshalJSON(data []byte) (err error) {
 		*t = HTTPTransport{}
 	}
 
-	t.MaxIdleConnDuration, err = time.ParseDuration(tmp.MaxIdleConnDuration)
+	t.MaxIdleConnDuration, err = str2duration.ParseDuration(tmp.MaxIdleConnDuration)
 	if err != nil {
 		return err
 	}
 
-	t.ReadTimeout, err = time.ParseDuration(tmp.ReadTimeout)
+	t.ReadTimeout, err = str2duration.ParseDuration(tmp.ReadTimeout)
 	if err != nil {
 		return err
 	}
 
-	t.WriteTimeout, err = time.ParseDuration(tmp.WriteTimeout)
+	t.WriteTimeout, err = str2duration.ParseDuration(tmp.WriteTimeout)
 	if err != nil {
 		return err
 	}
@@ -485,17 +485,17 @@ func (t *HTTPTransport) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		*t = HTTPTransport{}
 	}
 
-	t.MaxIdleConnDuration, err = time.ParseDuration(tmp.MaxIdleConnDuration)
+	t.MaxIdleConnDuration, err = str2duration.ParseDuration(tmp.MaxIdleConnDuration)
 	if err != nil {
 		return err
 	}
 
-	t.ReadTimeout, err = time.ParseDuration(tmp.ReadTimeout)
+	t.ReadTimeout, err = str2duration.ParseDuration(tmp.ReadTimeout)
 	if err != nil {
 		return err
 	}
 
-	t.WriteTimeout, err = time.ParseDuration(tmp.WriteTimeout)
+	t.WriteTimeout, err = str2duration.ParseDuration(tmp.WriteTimeout)
 	if err != nil {
 		return err
 	}
