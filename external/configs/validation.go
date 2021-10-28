@@ -19,8 +19,10 @@ const (
 	PortIfEnabledTag        = "port_if_enabled"
 	DurationTag             = "duration"
 	PassEntropyTag          = "pass_entropy"
+)
 
-	minEntropyBits = 5
+var (
+	minEntropyBits = passwordvalidator.GetEntropy("admin")
 )
 
 // RegisterCustomValidationsTags registers all custom validation tags
