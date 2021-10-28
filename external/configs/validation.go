@@ -3,6 +3,7 @@ package configs
 import (
 	"context"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -182,12 +183,12 @@ func ValidateCronString(fl validator.FieldLevel) bool {
 
 // ValidateDuration implements validator.Func for validate duration values
 func ValidateDuration(fl validator.FieldLevel) bool {
-	field := fl.Field().String()
-	if len(field) > 0 {
-		if _, err := str2duration.ParseDuration(field); err == nil {
-			return true
-		}
+	field := fl.Field().Int()
+
+	if _, err := str2duration.ParseDuration(strconv.FormatInt(field, 10)); err == nil {
+		return true
 	}
+
 	return false
 }
 
