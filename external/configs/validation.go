@@ -20,7 +20,7 @@ const (
 	DurationTag             = "duration"
 	PassEntropyTag          = "pass_entropy"
 
-	minEntropyBits = 60
+	minEntropyBits = 5
 )
 
 // RegisterCustomValidationsTags registers all custom validation tags
