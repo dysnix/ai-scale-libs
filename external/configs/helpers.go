@@ -96,6 +96,8 @@ func SetupSignalHandler(l ...interface{}) context.Context {
 				closer.Close()
 			case SignalCloserWithErr:
 				_ = closer.Close()
+			case SignalStopperWithErr:
+				_ = closer.Stop()
 			}
 		}
 		cancel()
