@@ -97,19 +97,23 @@ func SetupSignalHandler(l ...interface{}) context.Context {
 				closer.Close()
 			case SignalCloserWithErr:
 				err := closer.Close()
-				switch logger := l[len(l)-1].(type) {
-				case *zap.SugaredLogger:
-					logger.Errorf("🔥 close SignalCloserWithErr object type: %T, error: %v", closer, err)
-				case *log.Logger:
-					logger.Printf("🔥 close SignalCloserWithErr object type: %T, error: %v", closer, err)
+				if err != nil {
+					switch logger := l[len(l)-1].(type) {
+					case *zap.SugaredLogger:
+						logger.Errorf("🔥 close SignalCloserWithErr object type: %T, error: %v", closer, err)
+					case *log.Logger:
+						logger.Printf("🔥 close SignalCloserWithErr object type: %T, error: %v", closer, err)
+					}
 				}
 			case SignalStopperWithErr:
 				err := closer.Stop()
-				switch logger := l[len(l)-1].(type) {
-				case *zap.SugaredLogger:
-					logger.Errorf("🔥 stop SignalStopperWithErr object type: %T, error: %v", closer, err)
-				case *log.Logger:
-					logger.Printf("🔥 stop SignalStopperWithErr object type: %T, error: %v", closer, err)
+				if err != nil {
+					switch logger := l[len(l)-1].(type) {
+					case *zap.SugaredLogger:
+						logger.Errorf("🔥 stop SignalStopperWithErr object type: %T, error: %v", closer, err)
+					case *log.Logger:
+						logger.Printf("🔥 stop SignalStopperWithErr object type: %T, error: %v", closer, err)
+					}
 				}
 			}
 		}
