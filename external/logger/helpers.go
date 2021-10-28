@@ -8,8 +8,15 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-func InitLogger(logsPath string, isDebugMode bool, opts ...zap.Option) *zap.SugaredLogger {
-	opts = append(opts, zap.AddCaller())
+func InitLogger(logsPath string, isDebugMode, useStackTracing bool) *zap.SugaredLogger {
+	opts := []zap.Option{zap.AddCaller()}
+
+	if useStackTracing {
+		opts = append(opts, zap.AddStacktrace(zap.FatalLevel))
+		opts = append(opts, zap.AddStacktrace(zap.PanicLevel))
+		opts = append(opts, zap.AddStacktrace(zap.ErrorLevel))
+		opts = append(opts, zap.AddCallerSkip(1))
+	}
 
 	var writeSyncers = []zapcore.WriteSyncer{
 		os.Stderr,
