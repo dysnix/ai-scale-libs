@@ -3,6 +3,7 @@ package configs
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
 	"log"
 	"net"
 	"net/url"
@@ -95,9 +96,21 @@ func SetupSignalHandler(l ...interface{}) context.Context {
 			case SignalCloser:
 				closer.Close()
 			case SignalCloserWithErr:
-				_ = closer.Close()
+				err := closer.Close()
+				switch logger := l[len(l)-1].(type) {
+				case *zap.SugaredLogger:
+					logger.Errorf("🔥 close SignalCloserWithErr object type: %T, error: %v", closer, err)
+				case *log.Logger:
+					logger.Printf("🔥 close SignalCloserWithErr object type: %T, error: %v", closer, err)
+				}
 			case SignalStopperWithErr:
-				_ = closer.Stop()
+				err := closer.Stop()
+				switch logger := l[len(l)-1].(type) {
+				case *zap.SugaredLogger:
+					logger.Errorf("🔥 stop SignalStopperWithErr object type: %T, error: %v", closer, err)
+				case *log.Logger:
+					logger.Printf("🔥 stop SignalStopperWithErr object type: %T, error: %v", closer, err)
+				}
 			}
 		}
 		cancel()
