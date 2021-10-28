@@ -402,9 +402,9 @@ func (ep *EnforcementPolicy) UnmarshalYAML(unmarshal func(interface{}) error) er
 }
 
 type HTTPTransport struct {
-	MaxIdleConnDuration time.Duration `yaml:"maxIdleConnDuration" json:"max_idle_conn_duration" validate:"required,gt=0,duration"`
-	ReadTimeout         time.Duration `yaml:"readTimeout" json:"read_timeout" validate:"required,gt=0,duration"`
-	WriteTimeout        time.Duration `yaml:"writeTimeout" json:"write_timeout" validate:"required,gt=0,duration"`
+	MaxIdleConnDuration time.Duration `yaml:"maxIdleConnDuration" json:"max_idle_conn_duration" validate:"required,gt=0"`
+	ReadTimeout         time.Duration `yaml:"readTimeout" json:"read_timeout" validate:"required,gt=0"`
+	WriteTimeout        time.Duration `yaml:"writeTimeout" json:"write_timeout" validate:"required,gt=0"`
 }
 
 func (t *HTTPTransport) MarshalJSON() ([]byte, error) {
