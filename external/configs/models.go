@@ -17,7 +17,7 @@ type Base struct {
 }
 
 type Client struct {
-	ClusterID string `yaml:"clusterId" json:"cluster_id" validate:"uuid5"`
+	ClusterID string `yaml:"clusterId" json:"cluster_id" validate:"uuid4"`
 }
 
 type Monitoring struct {
