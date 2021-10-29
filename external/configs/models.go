@@ -11,9 +11,14 @@ import (
 )
 
 type Base struct {
-	IsDebugMode bool `yaml:"debugMode" json:"debug_mode"`
+	IsDebugMode bool   `yaml:"debugMode" json:"debug_mode"`
+	Client      Client `yaml:"client" json:"client" validate:"required"`
 	Profiling   Profiling
 	Monitoring  Monitoring
+}
+
+type Client struct {
+	ClusterID string `yaml:"clusterId" json:"cluster_id" validate:"uuid5"`
 }
 
 type Monitoring struct {
