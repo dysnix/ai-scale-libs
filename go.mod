@@ -6,6 +6,7 @@ require (
 	github.com/dysnix/ai-scale-proto v0.0.0-20211022105958-dc62f5498ac1
 	github.com/go-playground/validator/v10 v10.9.0
 	github.com/golang/protobuf v1.5.2
+	github.com/google/uuid v1.3.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/itchyny/timefmt-go v0.1.3 // indirect
 	github.com/klauspost/compress v1.13.6

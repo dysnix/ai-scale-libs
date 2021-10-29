@@ -11,8 +11,7 @@ import (
 )
 
 type Base struct {
-	IsDebugMode bool   `yaml:"debugMode" json:"debug_mode"`
-	Client      Client `yaml:"client" json:"client" validate:"required"`
+	IsDebugMode bool `yaml:"debugMode" json:"debug_mode"`
 	Profiling   Profiling
 	Monitoring  Monitoring
 }
