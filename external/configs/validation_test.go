@@ -99,6 +99,8 @@ func TestValidateRequiredIfNotEmpty(t *testing.T) {
 	err := RegisterCustomValidationsTags(context.Background(), testValidator, nil)
 	assert.NoError(t, err)
 
+	assert.NoError(t, testValidator.Var(Client{ClusterID: "6900cfdc-38a5-11ec-9742-acde48001122"}, "uuid"))
+
 	for i := range cases {
 		tc := cases[i]
 		t.Run(tc.name, func(t *testing.T) {
