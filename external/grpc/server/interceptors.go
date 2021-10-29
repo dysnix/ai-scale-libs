@@ -16,10 +16,10 @@ func InjectClientMetadataInterceptor() grpc.UnaryServerInterceptor {
 		st := reflect.TypeOf(req)
 		_, ok := st.MethodByName("GetHeader")
 		if ok {
-			var b interface{} = &pb.Header{ClusterId: "bsc-1"}
+			var b interface{} = pb.Header{ClusterId: "bsc-1"}
 			field := reflect.New(reflect.TypeOf(b))
 			field.Elem().Set(reflect.ValueOf(b))
-			reflect.ValueOf(&req).Elem().FieldByName("Header").Set(field)
+			reflect.ValueOf(req).Elem().FieldByName("Header").Set(field)
 		}
 
 		resp, err = handler(ctx, req)
