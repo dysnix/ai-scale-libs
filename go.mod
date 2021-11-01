@@ -3,7 +3,9 @@ module github.com/dysnix/ai-scale-libs
 go 1.15
 
 require (
-	github.com/dysnix/ai-scale-proto v0.0.0-20211022105958-dc62f5498ac1
+	github.com/brianvoe/gofakeit/v6 v6.9.0
+	github.com/bxcodec/faker/v3 v3.6.0
+	github.com/dysnix/ai-scale-proto v0.0.0-20211101160425-50bc6c307f62
 	github.com/go-playground/validator/v10 v10.9.0
 	github.com/golang/protobuf v1.5.2
 	github.com/google/uuid v1.3.0 // indirect
@@ -18,6 +20,8 @@ require (
 	go.uber.org/zap v1.19.0
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	google.golang.org/grpc v1.41.0
+	google.golang.org/protobuf v1.27.1
+	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	k8s.io/api v0.22.2
 	k8s.io/apimachinery v0.22.2

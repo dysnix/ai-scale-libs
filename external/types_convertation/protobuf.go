@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"github.com/dysnix/ai-scale-proto/external/proto/enums"
-	"github.com/golang/protobuf/ptypes"
 	tspb "github.com/golang/protobuf/ptypes/timestamp"
 )
 
@@ -16,12 +17,7 @@ var (
 
 func AdaptTimeToPbTimestamp(currentTime *time.Time) (*tspb.Timestamp, error) {
 	if currentTime != nil && !(*currentTime).IsZero() {
-		protoTime := &tspb.Timestamp{}
-		protoTime, err := ptypes.TimestampProto(TimePtrToTime(currentTime))
-		if err != nil {
-			return nil, err
-		}
-		return protoTime, nil
+		return timestamppb.New(TimePtrToTime(currentTime)), nil
 	}
 	return nil, TimeIsEmptyOrZero
 }
