@@ -1,6 +1,7 @@
 package faker
 
 import (
+	"github.com/google/uuid"
 	"reflect"
 	"time"
 
@@ -13,7 +14,27 @@ import (
 )
 
 // MetricsGenerator function for generate random metrics response from Provider
-func MetricsGenerator(diffDuration time.Duration) (err error) {
+func MetricsGenerator(diffDuration time.Duration, existUUID ...string) (err error) {
+	if err = faker.AddProvider("uuidHyphenated", func(v reflect.Value) (interface{}, error) {
+		if len(existUUID) > 0 {
+			id, err := uuid.Parse(existUUID[0])
+			if err != nil {
+				return nil, err
+			}
+
+			return id.String(), nil
+		}
+
+		id, err := uuid.NewUUID()
+		if err != nil {
+			return nil, err
+		}
+
+		return id.String(), nil
+	}); err != nil {
+		return err
+	}
+
 	if err = faker.AddProvider("unixTime", func(v reflect.Value) (interface{}, error) {
 		start := time.Now()
 		t := gofakeit.DateRange(start.Add(-diffDuration), start)
