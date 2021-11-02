@@ -5,10 +5,10 @@ go 1.15
 require (
 	github.com/brianvoe/gofakeit/v6 v6.9.0
 	github.com/bxcodec/faker/v3 v3.6.0
-	github.com/dysnix/ai-scale-proto v0.0.0-20211101160425-50bc6c307f62
+	github.com/dysnix/ai-scale-proto v0.0.0-20211102103649-e7e5e2baecd8
 	github.com/go-playground/validator/v10 v10.9.0
 	github.com/golang/protobuf v1.5.2
-	github.com/google/uuid v1.3.0 // indirect
+	github.com/google/uuid v1.3.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/itchyny/timefmt-go v0.1.3 // indirect
 	github.com/klauspost/compress v1.13.6
@@ -23,6 +23,7 @@ require (
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+	gotest.tools/v3 v3.0.3
 	k8s.io/api v0.22.2
 	k8s.io/apimachinery v0.22.2
 	k8s.io/client-go v0.22.2

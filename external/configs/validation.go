@@ -199,6 +199,8 @@ func ValidatePasswordEntropy(fl validator.FieldLevel) bool {
 		if err := passwordvalidator.Validate(field, minEntropyBits); err == nil {
 			return true
 		}
+
+		return false
 	}
-	return false
+	return true
 }
