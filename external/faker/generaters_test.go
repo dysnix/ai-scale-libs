@@ -2,6 +2,7 @@ package faker
 
 import (
 	"testing"
+	"time"
 
 	"github.com/bxcodec/faker/v3"
 
@@ -11,7 +12,7 @@ import (
 func TestMetricsGenerator(t *testing.T) {
 	a := pb.ReqSendMetrics{}
 
-	err := MetricsGenerator()
+	err := MetricsGenerator(time.Hour)
 	if err != nil {
 		t.Error(err)
 		return

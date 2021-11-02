@@ -13,10 +13,10 @@ import (
 )
 
 // MetricsGenerator function for generate random metrics response from Provider
-func MetricsGenerator() (err error) {
+func MetricsGenerator(diffDuration time.Duration) (err error) {
 	if err = faker.AddProvider("unixTime", func(v reflect.Value) (interface{}, error) {
 		start := time.Now()
-		t := gofakeit.DateRange(start.Add(-time.Hour), start)
+		t := gofakeit.DateRange(start.Add(-diffDuration), start)
 		return uint64(t.Unix()), nil
 	}); err != nil {
 		return err
@@ -31,7 +31,7 @@ func MetricsGenerator() (err error) {
 			result = append(result, &pb.MetricValue{
 				MetricType:             enums.MetricsType(tmpMetricType),
 				PrometheusResponseType: enums.ValueType(tmpPrometheusResponseType),
-				Values:                 generateRandItemsSlice(1, 10),
+				Values:                 generateRandItemsSlice(1, 10, diffDuration),
 			})
 		}
 
@@ -43,11 +43,11 @@ func MetricsGenerator() (err error) {
 	return nil
 }
 
-func generateRandItemsSlice(min, max int) (result []*pb.Item) {
+func generateRandItemsSlice(min, max int, diffDuration time.Duration) (result []*pb.Item) {
 	start := time.Now()
 
 	for i := 0; i < gofakeit.Number(min, max); i++ {
-		tmpTime, _ := tc.AdaptTimeToPbTimestamp(tc.TimeToTimePtr(gofakeit.DateRange(start.Add(-time.Hour), start)))
+		tmpTime, _ := tc.AdaptTimeToPbTimestamp(tc.TimeToTimePtr(gofakeit.DateRange(start.Add(-diffDuration), start)))
 
 		result = append(result, &pb.Item{
 			Timestamp: tmpTime,
