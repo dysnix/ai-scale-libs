@@ -2,8 +2,8 @@ package configs
 
 import (
 	"context"
+	"flag"
 	"fmt"
-	"go.uber.org/zap"
 	"log"
 	"net"
 	"net/url"
@@ -13,6 +13,9 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/olekukonko/tablewriter"
+	"go.uber.org/zap"
 )
 
 func GetRootRepositoryPath() string {
@@ -123,4 +126,24 @@ func SetupSignalHandler(l ...interface{}) context.Context {
 	}()
 
 	return ctx
+}
+
+func PrintFlags() {
+	_, _ = fmt.Fprintf(os.Stderr, "Usage: service (%s) [options] param>:\n", os.Args[0])
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"Flag name", "Flag Value", "Flag description"})
+	table.SetHeaderColor(tablewriter.Colors{tablewriter.Bold, tablewriter.FgCyanColor},
+		tablewriter.Colors{tablewriter.Bold, tablewriter.FgCyanColor},
+		tablewriter.Colors{tablewriter.Bold, tablewriter.FgCyanColor})
+	table.SetAlignment(tablewriter.ALIGN_LEFT)
+	counter := 0
+	flag.VisitAll(func(f *flag.Flag) {
+		table.Append([]string{f.Name, fmt.Sprintf("%v", f.Value), fmt.Sprintf("%v", f.Usage)})
+		if counter%3 == 0 {
+			table.SetRowLine(true)
+		}
+		counter++
+	})
+	table.Render()
 }

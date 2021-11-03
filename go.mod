@@ -12,6 +12,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/itchyny/timefmt-go v0.1.3 // indirect
 	github.com/klauspost/compress v1.13.6
+	github.com/olekukonko/tablewriter v0.0.5
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.7.0
 	github.com/valyala/fasthttp v1.31.0
