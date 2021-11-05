@@ -132,7 +132,7 @@ func (b *Buffer) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 type TCPKeepalive struct {
-	Enabled bool          `validate:"boolean"`
+	Enabled bool
 	Period  time.Duration `validate:"required,gt=0"`
 }
 
