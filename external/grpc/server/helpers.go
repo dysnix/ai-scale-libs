@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"net"
 	"strings"
 
@@ -35,7 +36,7 @@ func CheckNetErrClosing(err error) error {
 	return nil
 }
 
-func SetGrpcServerOptions(conf *configs.GRPC, internalInterceptors ...grpc.UnaryServerInterceptor) (options []grpc.ServerOption, err error) {
+func SetGrpcServerOptions(conf *configs.GRPC, baseConf *configs.Base, internalInterceptors ...grpc.UnaryServerInterceptor) (options []grpc.ServerOption, err error) {
 	unaryInterceptors := make([]grpc.UnaryServerInterceptor, 0)
 	streamInterceptors := make([]grpc.StreamServerInterceptor, 0)
 
@@ -85,6 +86,11 @@ func SetGrpcServerOptions(conf *configs.GRPC, internalInterceptors ...grpc.Unary
 	)
 
 	// TODO: implement all needed interceptors...
+
+	if baseConf.Monitoring.Enabled {
+		unaryInterceptors = append(unaryInterceptors, grpc_prometheus.UnaryServerInterceptor)
+		streamInterceptors = append(streamInterceptors, grpc_prometheus.StreamServerInterceptor)
+	}
 
 	if len(internalInterceptors) > 0 {
 		unaryInterceptors = append(unaryInterceptors, internalInterceptors...)

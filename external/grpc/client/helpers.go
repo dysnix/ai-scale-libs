@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"github.com/dysnix/ai-scale-libs/external/enums"
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"google.golang.org/grpc/encoding/gzip"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -21,8 +22,9 @@ const (
 	DefaultMaxMsgSize = 2 << 20 // 2Mb
 )
 
-func SetGrpcClientOptions(conf *configs.GRPC, internalInterceptors ...grpc.UnaryClientInterceptor) (options []grpc.DialOption, err error) {
+func SetGrpcClientOptions(conf *configs.GRPC, baseConf *configs.Base, internalInterceptors ...grpc.UnaryClientInterceptor) (options []grpc.DialOption, err error) {
 	unaryClientInterceptors := make([]grpc.UnaryClientInterceptor, 0)
+	streamClientInterceptors := make([]grpc.StreamClientInterceptor, 0)
 
 	if conf.Keepalive != nil {
 		options = append(options,
@@ -77,6 +79,11 @@ func SetGrpcClientOptions(conf *configs.GRPC, internalInterceptors ...grpc.Unary
 			//TODO:? can be any other logic...
 			return status.Errorf(codes.Unknown, "panic triggered: %v", err)
 		}))
+
+	if baseConf.Monitoring.Enabled {
+		unaryClientInterceptors = append(unaryClientInterceptors, grpc_prometheus.UnaryClientInterceptor)
+		streamClientInterceptors = append(streamClientInterceptors, grpc_prometheus.StreamClientInterceptor)
+	}
 
 	unaryClientInterceptors = append(unaryClientInterceptors, internalInterceptors...)
 
