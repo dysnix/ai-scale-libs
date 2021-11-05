@@ -14,10 +14,17 @@ type Base struct {
 	IsDebugMode bool `yaml:"debugMode" json:"debug_mode"`
 	Profiling   Profiling
 	Monitoring  Monitoring
+	Single      *Single `yaml:"single,omitempty" json:"single,omitempty"`
 }
 
 type Client struct {
 	ClusterID string `yaml:"clusterId" json:"cluster_id" validate:"uuid"`
+}
+
+type Single struct {
+	Enabled bool
+	Host    string `validate:"host_if_enabled"`
+	Port    uint16 `validate:"port_if_enabled"`
 }
 
 type Monitoring struct {
