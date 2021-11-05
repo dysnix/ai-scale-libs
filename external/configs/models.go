@@ -22,9 +22,118 @@ type Client struct {
 }
 
 type Single struct {
-	Enabled bool
-	Host    string `validate:"host_if_enabled"`
-	Port    uint16 `validate:"port_if_enabled"`
+	Enabled            bool
+	Host               string `validate:"host_if_enabled"`
+	Port               uint16 `validate:"port_if_enabled"`
+	Name               string
+	Concurrency        uint          `validate:"required_if=Enabled true,gt=1,lte=1000000"`
+	Buffer             *Buffer       `yaml:"buffer,omitempty" json:"buffer,omitempty" validate:"required_if=Enabled true"`
+	TCPKeepalivePeriod time.Duration `yaml:"tcpKeepalivePeriod" json:"tcp_keepalive_period" validate:"required_if=Enabled true,gt=0"`
+	HTTPTransport      HTTPTransport
+}
+
+type Buffer struct {
+	ReadBufferSize  uint `yaml:"readBufferSize" json:"read_buffer_size" validate:"gte=4096"`
+	WriteBufferSize uint `yaml:"writeBufferSize" json:"write_buffer_size" validate:"gte=4096"`
+}
+
+func (b *Buffer) MarshalJSON() ([]byte, error) {
+	type alias struct {
+		ReadBufferSize  string `yaml:"readBufferSize" json:"read_buffer_size"`
+		WriteBufferSize string `yaml:"writeBufferSize" json:"write_buffer_size"`
+	}
+
+	if b == nil {
+		*b = Buffer{}
+	}
+
+	return json.Marshal(alias{
+		ReadBufferSize:  tc.BytesSize(float64(b.ReadBufferSize)),
+		WriteBufferSize: tc.BytesSize(float64(b.WriteBufferSize)),
+	})
+}
+
+func (b *Buffer) UnmarshalJSON(data []byte) (err error) {
+	type alias struct {
+		ReadBufferSize  string `yaml:"readBufferSize" json:"read_buffer_size"`
+		WriteBufferSize string `yaml:"writeBufferSize" json:"write_buffer_size"`
+	}
+	var tmp alias
+	if err = json.Unmarshal(data, &tmp); err != nil {
+		return err
+	}
+
+	if b == nil {
+		*b = Buffer{}
+	}
+
+	var tmpB int64
+	if tmpB, err = tc.RAMInBytes(tmp.ReadBufferSize); err != nil {
+		return err
+	}
+
+	b.ReadBufferSize = uint(tmpB)
+
+	if tmpB, err = tc.RAMInBytes(tmp.WriteBufferSize); err != nil {
+		return err
+	}
+
+	b.WriteBufferSize = uint(tmpB)
+
+	return nil
+}
+
+func (b *Buffer) MarshalYAML() (interface{}, error) {
+	type alias struct {
+		ReadBufferSize  string `yaml:"readBufferSize" json:"read_buffer_size"`
+		WriteBufferSize string `yaml:"writeBufferSize" json:"write_buffer_size"`
+	}
+
+	if b == nil {
+		*b = Buffer{}
+	}
+
+	return alias{
+		ReadBufferSize:  tc.BytesSize(float64(b.ReadBufferSize)),
+		WriteBufferSize: tc.BytesSize(float64(b.WriteBufferSize)),
+	}, nil
+}
+
+func (b *Buffer) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type alias struct {
+		ReadBufferSize  string `yaml:"readBufferSize" json:"read_buffer_size"`
+		WriteBufferSize string `yaml:"writeBufferSize" json:"write_buffer_size"`
+	}
+
+	var tmp alias
+	err := unmarshal(&tmp)
+	if err != nil {
+		return err
+	}
+
+	if b == nil {
+		*b = Buffer{}
+	}
+
+	var tmpB int64
+	if tmpB, err = tc.RAMInBytes(tmp.ReadBufferSize); err != nil {
+		return err
+	}
+
+	b.ReadBufferSize = uint(tmpB)
+
+	if tmpB, err = tc.RAMInBytes(tmp.WriteBufferSize); err != nil {
+		return err
+	}
+
+	b.WriteBufferSize = uint(tmpB)
+
+	return nil
+}
+
+type TCPKeepalive struct {
+	Enabled bool          `validate:"boolean"`
+	Period  time.Duration `validate:"required,gt=0"`
 }
 
 type Monitoring struct {
