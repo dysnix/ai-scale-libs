@@ -3,9 +3,11 @@ module github.com/dysnix/ai-scale-libs
 go 1.15
 
 require (
+	github.com/andybalholm/brotli v1.0.3 // indirect
 	github.com/brianvoe/gofakeit/v6 v6.9.0
 	github.com/bxcodec/faker/v3 v3.6.0
 	github.com/dysnix/ai-scale-proto v0.0.0-20211102103649-e7e5e2baecd8
+	github.com/fasthttp/router v1.4.4 // indirect
 	github.com/go-playground/validator/v10 v10.9.0
 	github.com/golang/protobuf v1.5.2
 	github.com/google/uuid v1.3.0
