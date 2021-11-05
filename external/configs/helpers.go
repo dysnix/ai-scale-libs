@@ -128,6 +128,35 @@ func SetupSignalHandler(l ...interface{}) context.Context {
 	return ctx
 }
 
+const (
+	MonitoringKey = "monitoring"
+	ProfilingKey  = "profiling"
+)
+
+func JoinClosers(in map[string]SignalCloserWithErr, conf *Base) (out []SignalCloserWithErr) {
+	for k, v := range in {
+		if k == MonitoringKey {
+			if conf.Monitoring.Enabled && v != nil {
+				out = append(out, v)
+			}
+
+			continue
+		}
+
+		if k == ProfilingKey {
+			if conf.Profiling.Enabled && v != nil {
+				out = append(out, v)
+			}
+
+			continue
+		}
+
+		out = append(out, v)
+	}
+
+	return out
+}
+
 func PrintFlags() {
 	_, _ = fmt.Fprintf(os.Stderr, "Usage: service (%s) [options] param>:\n", os.Args[0])
 
