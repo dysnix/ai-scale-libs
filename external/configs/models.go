@@ -22,14 +22,14 @@ type Client struct {
 }
 
 type Single struct {
-	Enabled            bool
-	Host               string `validate:"host_if_enabled"`
-	Port               uint16 `validate:"port_if_enabled"`
-	Name               string
-	Concurrency        uint          `validate:"required_if=Enabled true,gt=1,lte=1000000"`
-	Buffer             *Buffer       `yaml:"buffer,omitempty" json:"buffer,omitempty" validate:"required_if=Enabled true"`
-	TCPKeepalivePeriod time.Duration `yaml:"tcpKeepalivePeriod" json:"tcp_keepalive_period" validate:"required_if=Enabled true,gt=0"`
-	HTTPTransport      HTTPTransport
+	Enabled       bool
+	Host          string `validate:"host_if_enabled"`
+	Port          uint16 `validate:"port_if_enabled"`
+	Name          string
+	Concurrency   uint          `validate:"required_if=Enabled true,gt=1,lte=1000000"`
+	Buffer        *Buffer       `yaml:"buffer,omitempty" json:"buffer,omitempty" validate:"required_if=Enabled true"`
+	TCPKeepalive  *TCPKeepalive `yaml:"tcpKeepalive,omitempty" json:"tcpKeepalive,omitempty" validate:"required_if=Enabled true"`
+	HTTPTransport HTTPTransport
 }
 
 type Buffer struct {
@@ -134,6 +134,89 @@ func (b *Buffer) UnmarshalYAML(unmarshal func(interface{}) error) error {
 type TCPKeepalive struct {
 	Enabled bool          `validate:"boolean"`
 	Period  time.Duration `validate:"required,gt=0"`
+}
+
+func (k *TCPKeepalive) MarshalJSON() ([]byte, error) {
+	type alias struct {
+		Enabled bool
+		Period  string
+	}
+
+	if k == nil {
+		*k = TCPKeepalive{}
+	}
+
+	return json.Marshal(alias{
+		Enabled: k.Enabled,
+		Period:  HumanDuration(k.Period),
+	})
+}
+
+func (k *TCPKeepalive) UnmarshalJSON(data []byte) (err error) {
+	type alias struct {
+		Enabled bool
+		Period  string
+	}
+
+	var tmp alias
+	if err = json.Unmarshal(data, &tmp); err != nil {
+		return err
+	}
+
+	if k == nil {
+		*k = TCPKeepalive{}
+	}
+
+	k.Enabled = tmp.Enabled
+
+	k.Period, err = str2duration.ParseDuration(tmp.Period)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (k *TCPKeepalive) MarshalYAML() (interface{}, error) {
+	type alias struct {
+		Enabled bool
+		Period  string
+	}
+
+	if k == nil {
+		*k = TCPKeepalive{}
+	}
+
+	return alias{
+		Enabled: k.Enabled,
+		Period:  HumanDuration(k.Period),
+	}, nil
+}
+
+func (k *TCPKeepalive) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type alias struct {
+		Enabled bool
+		Period  string
+	}
+
+	var tmp alias
+	err := unmarshal(&tmp)
+	if err != nil {
+		return err
+	}
+
+	if k == nil {
+		*k = TCPKeepalive{}
+	}
+
+	k.Enabled = tmp.Enabled
+
+	k.Period, err = str2duration.ParseDuration(tmp.Period)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type Monitoring struct {
