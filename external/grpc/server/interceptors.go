@@ -5,17 +5,35 @@ import (
 	"errors"
 	"reflect"
 	"strings"
+	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 
 	grpcC "github.com/dysnix/ai-scale-libs/external/grpc"
+	"github.com/dysnix/ai-scale-libs/external/http_transport"
 	pb "github.com/dysnix/ai-scale-proto/external/proto/services"
 )
 
 const (
-	clusterID = "cluster_id"
+	startTimeKey = "startTime"
 )
+
+func AuthLifecycleInterceptor(authLifecycle prometheus.Histogram) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{},
+		info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+		resp, err = handler(http_transport.AddToContext(ctx, startTimeKey, time.Now().Round(time.Millisecond)), req)
+
+		if startTime, ok := http_transport.GetFromContext(ctx, startTimeKey).(time.Time); ok {
+			if authLifecycle != nil {
+				authLifecycle.Observe(float64(time.Since(startTime).Milliseconds()))
+			}
+		}
+
+		return resp, err
+	}
+}
 
 func InjectClientMetadataInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{},
