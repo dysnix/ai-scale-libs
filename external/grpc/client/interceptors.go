@@ -8,10 +8,7 @@ import (
 	"google.golang.org/grpc/metadata"
 
 	"github.com/dysnix/ai-scale-libs/external/configs"
-)
-
-const (
-	clusterID = "cluster_id"
+	grpcC "github.com/dysnix/ai-scale-libs/external/grpc"
 )
 
 func InjectClientMetadataInterceptor(conf configs.Client) grpc.UnaryClientInterceptor {
@@ -23,7 +20,15 @@ func InjectClientMetadataInterceptor(conf configs.Client) grpc.UnaryClientInterc
 		invoker grpc.UnaryInvoker,
 		opts ...grpc.CallOption,
 	) (err error) {
-		return invoker(metadata.AppendToOutgoingContext(ctx, clusterID, conf.ClusterID), method, req, reply, cc, opts...)
+		if len(conf.Name) > 0 {
+			ctx = metadata.AppendToOutgoingContext(ctx, grpcC.NameKey, conf.Name)
+		}
+
+		if len(conf.ClusterID) > 0 {
+			ctx = metadata.AppendToOutgoingContext(ctx, grpcC.ClusterIDKey, conf.ClusterID)
+		}
+
+		return invoker(metadata.AppendToOutgoingContext(ctx, grpcC.TokenKey, conf.Token), method, req, reply, cc, opts...)
 	}
 }
 

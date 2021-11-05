@@ -19,6 +19,8 @@ type Base struct {
 
 type Client struct {
 	ClusterID string `yaml:"clusterId" json:"cluster_id" validate:"uuid"`
+	Name      string
+	Token     string `validate:"jwt"`
 }
 
 type Single struct {

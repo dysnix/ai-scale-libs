@@ -3,12 +3,13 @@ package server
 import (
 	"context"
 	"errors"
-	"google.golang.org/grpc/metadata"
 	"reflect"
 	"strings"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 
+	grpcC "github.com/dysnix/ai-scale-libs/external/grpc"
 	pb "github.com/dysnix/ai-scale-proto/external/proto/services"
 )
 
@@ -28,9 +29,18 @@ func InjectClientMetadataInterceptor() grpc.UnaryServerInterceptor {
 			md, ok := metadata.FromIncomingContext(ctx)
 			if ok {
 				for key, val := range md {
-					if strings.Contains(key, clusterID) && len(val) > 0 {
+					if strings.Contains(key, grpcC.ClusterIDKey) && len(val) > 0 {
 						header.ClusterId = val[0]
 						break
+					}
+				}
+
+				if len(header.GetClusterId()) == 0 {
+					for key, val := range md {
+						if strings.Contains(key, grpcC.NameKey) && len(val) > 0 {
+							header.ClusterId = val[0]
+							break
+						}
 					}
 				}
 			}
