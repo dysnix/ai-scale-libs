@@ -2,6 +2,7 @@ package configs
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"reflect"
 	"strconv"
 	"strings"
@@ -20,6 +21,7 @@ const (
 	PortIfEnabledTag        = "port_if_enabled"
 	DurationTag             = "duration"
 	PassEntropyTag          = "pass_entropy"
+	UUIDIfNotEmptyTag       = "uuid_if_not_empty"
 )
 
 var (
@@ -61,6 +63,10 @@ func RegisterCustomValidationsTags(ctx context.Context, validator *validator.Val
 	}
 
 	if err = validator.RegisterValidation(PassEntropyTag, ValidatePasswordEntropy); err != nil {
+		return err
+	}
+
+	if err = validator.RegisterValidation(UUIDIfNotEmptyTag, ValidateUUIDIfNotEmpty); err != nil {
 		return err
 	}
 
@@ -197,6 +203,19 @@ func ValidatePasswordEntropy(fl validator.FieldLevel) bool {
 	field := fl.Field().String()
 	if len(field) > 0 {
 		if err := passwordvalidator.Validate(field, minEntropyBits); err == nil {
+			return true
+		}
+
+		return false
+	}
+	return true
+}
+
+// ValidateUUIDIfNotEmpty implements validator.Func for validate UUID string if it not empty
+func ValidateUUIDIfNotEmpty(fl validator.FieldLevel) bool {
+	field := fl.Field().String()
+	if len(field) > 0 {
+		if _, err := uuid.Parse(field); err == nil {
 			return true
 		}
 
