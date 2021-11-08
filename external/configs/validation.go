@@ -82,6 +82,10 @@ func ValidateGRPCHost(validatorMain *validator.Validate) func(level validator.Fi
 				return true
 			}
 
+			if err := validatorMain.Var(field, "ip"); err == nil {
+				return true
+			}
+
 			return false
 		}
 		return true
