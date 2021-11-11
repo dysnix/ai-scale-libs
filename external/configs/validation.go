@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/robfig/cron/v3"
@@ -26,48 +27,60 @@ const (
 
 var (
 	minEntropyBits = passwordvalidator.GetEntropy("admin")
+	doOnce         sync.Once
 )
 
 // RegisterCustomValidationsTags registers all custom validation tags
-func RegisterCustomValidationsTags(ctx context.Context, validator *validator.Validate, in map[string]func(fl validator.FieldLevel) bool) (err error) {
-	for tag, _ := range in {
-		newTag := tag
-		newCallback := in[tag]
-		if err = validator.RegisterValidation(newTag, newCallback); err != nil {
-			return err
+func RegisterCustomValidationsTags(ctx context.Context, validator *validator.Validate, in map[string]func(fl validator.FieldLevel) bool, configs interface{}) (err error) {
+	errCh := make(chan error, 1)
+	defer close(errCh)
+
+	doOnce.Do(func() {
+		for tag, _ := range in {
+			newTag := tag
+			newCallback := in[tag]
+			if err = validator.RegisterValidation(newTag, newCallback); err != nil {
+				errCh <- err
+			}
 		}
-	}
 
-	if err = validator.RegisterValidation(GRPCHostTag, ValidateGRPCHost(validator)); err != nil {
-		return err
-	}
+		if err = validator.RegisterValidation(GRPCHostTag, ValidateGRPCHost(validator)); err != nil {
+			errCh <- err
+		}
 
-	if err = validator.RegisterValidation(RequiredIfNotNilOrEmpty, ValidateRequiredIfNotEmpty); err != nil {
-		return err
-	}
+		if err = validator.RegisterValidation(RequiredIfNotNilOrEmpty, ValidateRequiredIfNotEmpty); err != nil {
+			errCh <- err
+		}
 
-	if err = validator.RegisterValidation(CronTag, ValidateCronString); err != nil {
-		return err
-	}
+		if err = validator.RegisterValidation(CronTag, ValidateCronString); err != nil {
+			errCh <- err
+		}
 
-	if err = validator.RegisterValidation(HostIfEnabledTag, ValidateHostIfEnabled(validator)); err != nil {
-		return err
-	}
+		if err = validator.RegisterValidation(HostIfEnabledTag, ValidateHostIfEnabled(validator, configs)); err != nil {
+			errCh <- err
+		}
 
-	if err = validator.RegisterValidation(PortIfEnabledTag, ValidatePortIfEnabled(validator)); err != nil {
-		return err
-	}
+		if err = validator.RegisterValidation(PortIfEnabledTag, ValidatePortIfEnabled(validator, configs)); err != nil {
+			errCh <- err
+		}
 
-	if err = validator.RegisterValidation(DurationTag, ValidateDuration); err != nil {
-		return err
-	}
+		if err = validator.RegisterValidation(DurationTag, ValidateDuration); err != nil {
+			errCh <- err
+		}
 
-	if err = validator.RegisterValidation(PassEntropyTag, ValidatePasswordEntropy); err != nil {
-		return err
-	}
+		if err = validator.RegisterValidation(PassEntropyTag, ValidatePasswordEntropy); err != nil {
+			errCh <- err
+		}
 
-	if err = validator.RegisterValidation(UUIDIfNotEmptyTag, ValidateUUIDIfNotEmpty); err != nil {
-		return err
+		if err = validator.RegisterValidation(UUIDIfNotEmptyTag, ValidateUUIDIfNotEmpty); err != nil {
+			errCh <- err
+		}
+	})
+
+	select {
+	case err = <-errCh:
+	default:
+		return nil
 	}
 
 	return err
@@ -128,8 +141,14 @@ func ValidateRequiredIfNotEmpty(fl validator.FieldLevel) bool {
 }
 
 // ValidateHostIfEnabled implements validator.Func for validate host string if struct enabled
-func ValidateHostIfEnabled(validatorMain *validator.Validate) func(level validator.FieldLevel) bool {
+func ValidateHostIfEnabled(validatorMain *validator.Validate, configs interface{}) func(level validator.FieldLevel) bool {
 	return func(fl validator.FieldLevel) bool {
+		if configs != nil {
+			if g, ok := configs.(SingleUseGetter); ok && g.SingleEnabled() {
+				return true
+			}
+		}
+
 		var otherFieldVal reflect.Value
 		if fl.Parent().Kind() == reflect.Ptr {
 			otherFieldVal = fl.Parent().Elem().FieldByName("Enabled")
@@ -154,8 +173,14 @@ func ValidateHostIfEnabled(validatorMain *validator.Validate) func(level validat
 }
 
 // ValidatePortIfEnabled implements validator.Func for validate port value if struct enabled
-func ValidatePortIfEnabled(validatorMain *validator.Validate) func(level validator.FieldLevel) bool {
+func ValidatePortIfEnabled(validatorMain *validator.Validate, configs interface{}) func(level validator.FieldLevel) bool {
 	return func(fl validator.FieldLevel) bool {
+		if configs != nil {
+			if g, ok := configs.(SingleUseGetter); ok && g.SingleEnabled() {
+				return true
+			}
+		}
+
 		var otherFieldVal reflect.Value
 		if fl.Parent().Kind() == reflect.Ptr {
 			otherFieldVal = fl.Parent().Elem().FieldByName("Enabled")

@@ -229,7 +229,7 @@ type Monitoring struct {
 
 type Profiling struct {
 	Enabled bool
-	Host    string `validate:"host_if_enabled"`
+	Host    string `validate:"required_if=Single.Enabled true,host_if_enabled"`
 	Port    uint16 `validate:"port_if_enabled"`
 }
 

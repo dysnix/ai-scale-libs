@@ -15,3 +15,7 @@ type SignalCloser interface {
 type SignalCloserWithErr interface {
 	Close() error
 }
+
+type SingleUseGetter interface {
+	SingleEnabled() bool
+}
