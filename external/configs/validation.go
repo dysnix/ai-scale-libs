@@ -2,16 +2,14 @@ package configs
 
 import (
 	"context"
-	"github.com/google/uuid"
-	"reflect"
-	"strconv"
-	"strings"
-	"sync"
-
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"github.com/robfig/cron/v3"
 	passwordvalidator "github.com/wagslane/go-password-validator"
 	"github.com/xhit/go-str2duration/v2"
+	"reflect"
+	"strings"
+	"sync"
 )
 
 const (
@@ -218,23 +216,13 @@ func ValidateCronString(fl validator.FieldLevel) bool {
 
 // ValidateDuration implements validator.Func for validate duration values
 func ValidateDuration(fl validator.FieldLevel) bool {
-	var (
-		field int64
-		err   error
-	)
-
 	switch fl.Field().Kind() {
 	case reflect.Int:
-		field = fl.Field().Int()
+		return fl.Field().Int() > 0
 	case reflect.String:
-		field, err = strconv.ParseInt(fl.Field().String(), 10, 64)
-		if err != nil {
-			return false
+		if _, err := str2duration.ParseDuration(fl.Field().String()); err == nil {
+			return true
 		}
-	}
-
-	if _, err := str2duration.ParseDuration(strconv.FormatInt(field, 10)); err == nil {
-		return true
 	}
 
 	return false
