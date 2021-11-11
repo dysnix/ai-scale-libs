@@ -218,7 +218,20 @@ func ValidateCronString(fl validator.FieldLevel) bool {
 
 // ValidateDuration implements validator.Func for validate duration values
 func ValidateDuration(fl validator.FieldLevel) bool {
-	field := fl.Field().Int()
+	var (
+		field int64
+		err   error
+	)
+
+	switch fl.Field().Kind() {
+	case reflect.Int:
+		field = fl.Field().Int()
+	case reflect.String:
+		field, err = strconv.ParseInt(fl.Field().String(), 10, 64)
+		if err != nil {
+			return false
+		}
+	}
 
 	if _, err := str2duration.ParseDuration(strconv.FormatInt(field, 10)); err == nil {
 		return true
