@@ -223,14 +223,14 @@ func (k *TCPKeepalive) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 type Monitoring struct {
 	Enabled bool
-	Host    string `validate:"host_if_enabled"`
-	Port    uint16 `validate:"port_if_enabled"`
+	Host    string `yaml:"host,omitempty" json:"host,omitempty" validate:"host_if_enabled"`
+	Port    uint16 `yaml:"port,omitempty" json:"port,omitempty" validate:"port_if_enabled"`
 }
 
 type Profiling struct {
 	Enabled bool
-	Host    string `validate:"required_if=Single.Enabled true,host_if_enabled"`
-	Port    uint16 `validate:"port_if_enabled"`
+	Host    string `yaml:"host,omitempty" json:"host,omitempty" validate:"host_if_enabled"`
+	Port    uint16 `yaml:"port,omitempty" json:"port,omitempty" validate:"port_if_enabled"`
 }
 
 type CronStr string
