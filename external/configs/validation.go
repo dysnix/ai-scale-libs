@@ -9,7 +9,6 @@ import (
 	"github.com/xhit/go-str2duration/v2"
 	"reflect"
 	"strings"
-	"sync"
 )
 
 const (
@@ -25,61 +24,70 @@ const (
 
 var (
 	minEntropyBits = passwordvalidator.GetEntropy("admin")
-	doOnce         sync.Once
+	//doOnce         sync.Once
 )
 
 // RegisterCustomValidationsTags registers all custom validation tags
 func RegisterCustomValidationsTags(ctx context.Context, validator *validator.Validate, in map[string]func(fl validator.FieldLevel) bool, configs interface{}) (err error) {
-	errCh := make(chan error, 1)
-	defer close(errCh)
+	//errCh := make(chan error, 1)
+	//defer close(errCh)
 
-	doOnce.Do(func() {
-		for tag, _ := range in {
-			newTag := tag
-			newCallback := in[tag]
-			if err = validator.RegisterValidation(newTag, newCallback); err != nil {
-				errCh <- err
-			}
+	//doOnce.Do(func() {
+	for tag, _ := range in {
+		newTag := tag
+		newCallback := in[tag]
+		if err = validator.RegisterValidation(newTag, newCallback); err != nil {
+			//errCh <- err
+			return err
 		}
-
-		if err = validator.RegisterValidation(GRPCHostTag, ValidateGRPCHost(validator)); err != nil {
-			errCh <- err
-		}
-
-		if err = validator.RegisterValidation(RequiredIfNotNilOrEmpty, ValidateRequiredIfNotEmpty); err != nil {
-			errCh <- err
-		}
-
-		if err = validator.RegisterValidation(CronTag, ValidateCronString); err != nil {
-			errCh <- err
-		}
-
-		if err = validator.RegisterValidation(HostIfEnabledTag, ValidateHostIfEnabled(validator, configs)); err != nil {
-			errCh <- err
-		}
-
-		if err = validator.RegisterValidation(PortIfEnabledTag, ValidatePortIfEnabled(validator, configs)); err != nil {
-			errCh <- err
-		}
-
-		if err = validator.RegisterValidation(DurationTag, ValidateDuration); err != nil {
-			errCh <- err
-		}
-
-		if err = validator.RegisterValidation(PassEntropyTag, ValidatePasswordEntropy); err != nil {
-			errCh <- err
-		}
-
-		if err = validator.RegisterValidation(UUIDIfNotEmptyTag, ValidateUUIDIfNotEmpty); err != nil {
-			errCh <- err
-		}
-	})
-
-	select {
-	case err = <-errCh:
-	default:
-		return nil
 	}
+
+	if err = validator.RegisterValidation(GRPCHostTag, ValidateGRPCHost(validator)); err != nil {
+		//errCh <- err
+		return err
+	}
+
+	if err = validator.RegisterValidation(RequiredIfNotNilOrEmpty, ValidateRequiredIfNotEmpty); err != nil {
+		//errCh <- err
+		return err
+	}
+
+	if err = validator.RegisterValidation(CronTag, ValidateCronString); err != nil {
+		//errCh <- err
+		return err
+	}
+
+	if err = validator.RegisterValidation(HostIfEnabledTag, ValidateHostIfEnabled(validator, configs)); err != nil {
+		//errCh <- err
+		return err
+	}
+
+	if err = validator.RegisterValidation(PortIfEnabledTag, ValidatePortIfEnabled(validator, configs)); err != nil {
+		//errCh <- err
+		return err
+	}
+
+	if err = validator.RegisterValidation(DurationTag, ValidateDuration); err != nil {
+		//errCh <- err
+		return err
+	}
+
+	if err = validator.RegisterValidation(PassEntropyTag, ValidatePasswordEntropy); err != nil {
+		//errCh <- err
+		return err
+	}
+
+	if err = validator.RegisterValidation(UUIDIfNotEmptyTag, ValidateUUIDIfNotEmpty); err != nil {
+		//errCh <- err
+		return err
+	}
+	//})
+
+	//select {
+	//case err = <-errCh:
+	//default:
+	//	return nil
+	//}
 
 	return err
 }
