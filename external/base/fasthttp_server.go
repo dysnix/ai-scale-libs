@@ -22,6 +22,7 @@ import (
 	libs "github.com/dysnix/ai-scale-libs/external/configs"
 	"github.com/dysnix/ai-scale-libs/external/grpc/client"
 	libsSrv "github.com/dysnix/ai-scale-libs/external/grpc/server"
+	"github.com/dysnix/ai-scale-proto/external/proto/health"
 )
 
 type fastHttpLogger struct {
@@ -41,7 +42,7 @@ type FastHttpServer struct {
 	logger *fastHttpLogger
 	server *fasthttp.Server
 
-	grpcClient grpc_health_v1.HealthClient
+	grpcClient health.HealthClient
 	grpcConn   *grpc.ClientConn
 	createConn bool
 }
@@ -81,7 +82,7 @@ func NewFastHttpServer(options ...libs.Option) (out *FastHttpServer, err error) 
 		}
 	}
 
-	out.grpcClient = grpc_health_v1.NewHealthClient(out.grpcConn)
+	out.grpcClient = health.NewHealthClient(out.grpcConn)
 	out.createConn = true
 
 	return out, nil
