@@ -64,7 +64,13 @@ func NewFastHttpServer(options ...libs.Option) (out *FastHttpServer, err error) 
 
 	if out.grpcConn == nil {
 		// grpc client for ping with some service
-		grpcClientOpt, err := client.SetGrpcClientOptions(out.conf.GetGrpc(), out.conf.GetBase(), client.InjectClientMetadataInterceptor(*out.conf.GetClient()))
+		var grpcClientOpt []grpc.DialOption
+		if out.conf.GetClient() != nil {
+			grpcClientOpt, err = client.SetGrpcClientOptions(out.conf.GetGrpc(), out.conf.GetBase(), client.InjectClientMetadataInterceptor(*out.conf.GetClient()))
+		} else {
+			grpcClientOpt, err = client.SetGrpcClientOptions(out.conf.GetGrpc(), out.conf.GetBase())
+		}
+
 		if err != nil {
 			return nil, err
 		}
