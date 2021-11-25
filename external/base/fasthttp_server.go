@@ -3,17 +3,24 @@ package base
 import (
 	"encoding/json"
 	"fmt"
+	"net/http/pprof"
+	rtp "runtime/pprof"
 	"strings"
 
 	"github.com/fasthttp/router"
+	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"go.uber.org/zap"
-	"net/http/pprof"
-	rtp "runtime/pprof"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/connectivity"
+	"google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/status"
 
 	libs "github.com/dysnix/ai-scale-libs/external/configs"
+	"github.com/dysnix/ai-scale-libs/external/grpc/client"
 	libsSrv "github.com/dysnix/ai-scale-libs/external/grpc/server"
 )
 
@@ -30,33 +37,76 @@ var (
 )
 
 type FastHttpServer struct {
-	conf   *libs.Base
+	conf   libs.SingleGetter
 	logger *fastHttpLogger
 	server *fasthttp.Server
+
+	grpcClient grpc_health_v1.HealthClient
+	grpcConn   *grpc.ClientConn
+	createConn bool
 }
 
-func NewFastHttpServer(conf *libs.Base, lg *zap.SugaredLogger) (out *FastHttpServer) {
+func NewFastHttpServer(options ...libs.Option) (out *FastHttpServer, err error) {
 	defer func() {
-		out.init()
+		if out != nil && err == nil {
+			out.init()
+		}
 	}()
 
-	return &FastHttpServer{
-		conf: conf,
-		logger: &fastHttpLogger{
-			SugaredLogger: *lg,
-		},
+	out = &FastHttpServer{}
+
+	for _, op := range options {
+		err := op(out)
+		if err != nil {
+			return nil, err
+		}
 	}
+
+	if out.grpcConn == nil {
+		// grpc client for ping with some service
+		grpcClientOpt, err := client.SetGrpcClientOptions(out.conf.GetGrpc(), out.conf.GetBase(), client.InjectClientMetadataInterceptor(*out.conf.GetClient()))
+		if err != nil {
+			return nil, err
+		}
+
+		out.grpcConn, err = grpc.Dial(fmt.Sprintf("%s:%d", out.conf.GetGrpc().Conn.Host, out.conf.GetGrpc().Conn.Port), grpcClientOpt...)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	out.grpcClient = grpc_health_v1.NewHealthClient(out.grpcConn)
+	out.createConn = true
+
+	return out, nil
+}
+
+func (s *FastHttpServer) SetConfigs(configs libs.SingleGetter) {
+	s.conf = configs
+}
+
+func (s *FastHttpServer) SetLogger(lg *zap.SugaredLogger) {
+	s.logger = &fastHttpLogger{
+		SugaredLogger: *lg,
+	}
+}
+
+func (s *FastHttpServer) SetGrpcClientConn(conn *grpc.ClientConn) {
+	s.grpcConn = conn
 }
 
 func (s *FastHttpServer) routing() *router.Router {
 	r := router.New()
 
-	if s.conf.Monitoring.Enabled {
+	r.GET("/healthz", s.liveness)
+	r.GET("/readyz", s.readiness)
+
+	if s.conf.GetBase().Monitoring.Enabled {
 		// metrics
 		r.ANY("/metrics", fasthttpadaptor.NewFastHTTPHandler(promhttp.Handler()))
 	}
 
-	if s.conf.Profiling.Enabled {
+	if s.conf.GetBase().Profiling.Enabled {
 		// profiling
 		grPprof := r.Group("/debug/pprof")
 		grPprof.ANY("/cmdline", fasthttpadaptor.NewFastHTTPHandlerFunc(pprof.Cmdline))
@@ -71,20 +121,20 @@ func (s *FastHttpServer) routing() *router.Router {
 
 func (s *FastHttpServer) init() {
 	s.server = &fasthttp.Server{
-		Name:               s.conf.Single.Name,
-		Concurrency:        int(s.conf.Single.Concurrency),
-		TCPKeepalive:       s.conf.Single.TCPKeepalive.Enabled,
-		TCPKeepalivePeriod: s.conf.Single.TCPKeepalive.Period,
-		ReadBufferSize:     int(s.conf.Single.Buffer.ReadBufferSize),
-		WriteBufferSize:    int(s.conf.Single.Buffer.WriteBufferSize),
-		ReadTimeout:        s.conf.Single.HTTPTransport.ReadTimeout,
-		WriteTimeout:       s.conf.Single.HTTPTransport.WriteTimeout,
-		IdleTimeout:        s.conf.Single.HTTPTransport.MaxIdleConnDuration,
+		Name:               s.conf.GetBase().Single.Name,
+		Concurrency:        int(s.conf.GetBase().Single.Concurrency),
+		TCPKeepalive:       s.conf.GetBase().Single.TCPKeepalive.Enabled,
+		TCPKeepalivePeriod: s.conf.GetBase().Single.TCPKeepalive.Period,
+		ReadBufferSize:     int(s.conf.GetBase().Single.Buffer.ReadBufferSize),
+		WriteBufferSize:    int(s.conf.GetBase().Single.Buffer.WriteBufferSize),
+		ReadTimeout:        s.conf.GetBase().Single.HTTPTransport.ReadTimeout,
+		WriteTimeout:       s.conf.GetBase().Single.HTTPTransport.WriteTimeout,
+		IdleTimeout:        s.conf.GetBase().Single.HTTPTransport.MaxIdleConnDuration,
 		Logger:             s.logger,
 		Handler:            fasthttp.CompressHandler(s.PanicMiddleware(s.CorsMiddleware(s.routing().Handler))),
 	}
 
-	if s.conf.IsDebugMode {
+	if s.conf.GetBase().IsDebugMode {
 		s.server.LogAllErrors = true
 	}
 }
@@ -94,10 +144,10 @@ func (s *FastHttpServer) Start() <-chan error {
 
 	go func() {
 		defer close(errCh)
-		if s.conf.Single != nil && s.conf.Single.Enabled {
+		if s.conf.GetBase().Single != nil && s.conf.GetBase().Single.Enabled {
 			s.logger.Info("✔️ FataHttp server started.")
-			if err := s.server.ListenAndServe(fmt.Sprintf("%s:%d", s.conf.Single.Host, s.conf.Single.Port)); err != nil {
-				if s.conf.IsDebugMode {
+			if err := s.server.ListenAndServe(fmt.Sprintf("%s:%d", s.conf.GetBase().Single.Host, s.conf.GetBase().Single.Port)); err != nil {
+				if s.conf.GetBase().IsDebugMode {
 					s.logger.Errorw(err.Error(), "serving fasthttp server with error")
 				}
 
@@ -110,14 +160,45 @@ func (s *FastHttpServer) Start() <-chan error {
 	return errCh
 }
 
-func (s *FastHttpServer) Stop() error {
+func (s *FastHttpServer) Stop() (err error) {
 	defer func() {
-		if s.conf.IsDebugMode {
-			s.logger.Info("🛑 FataHttp server stoped.")
+		if s.createConn {
+			err1Tmp := err
+
+			if err = s.grpcConn.Close(); err != nil && err1Tmp != nil {
+				err = errors.WithMessage(err, err1Tmp.Error())
+			}
+		}
+
+		if s.conf.GetBase().IsDebugMode {
+			s.logger.Info("🛑 FataHttp server stopped.")
 		}
 	}()
 
 	return s.server.Shutdown()
+}
+
+func (s *FastHttpServer) liveness(ctx *fasthttp.RequestCtx) {
+	if s.grpcConn.GetState() == connectivity.Shutdown {
+		errorPrint(ctx, errors.New("GRPC server connection is closed"), fasthttp.StatusServiceUnavailable)
+		return
+	}
+}
+
+func (s *FastHttpServer) readiness(ctx *fasthttp.RequestCtx) {
+	_, err := grpc_health_v1.NewHealthClient(s.grpcConn).Check(ctx, &grpc_health_v1.HealthCheckRequest{
+		Service: "_",
+	})
+
+	if err != nil {
+		if stat, ok := status.FromError(err); ok && stat.Code() == codes.Unimplemented {
+			errorPrint(ctx, errors.New("the GRPC server doesn't implement the grpc health protocol"), fasthttp.StatusNotImplemented)
+			return
+		}
+
+		errorPrint(ctx, fmt.Errorf("GRPC server rpc failed %s", err), fasthttp.StatusInternalServerError)
+		return
+	}
 }
 
 const (

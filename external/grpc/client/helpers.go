@@ -2,20 +2,21 @@ package client
 
 import (
 	"context"
-	"github.com/dysnix/ai-scale-libs/external/enums"
-	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
-	"google.golang.org/grpc/encoding/gzip"
+
+	_ "github.com/dysnix/ai-scale-libs/external/grpc/zstd_compressor"
+	_ "google.golang.org/grpc/encoding/gzip"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	_ "google.golang.org/grpc/encoding/gzip"
+	"google.golang.org/grpc/encoding/gzip"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/status"
 
 	"github.com/dysnix/ai-scale-libs/external/configs"
+	"github.com/dysnix/ai-scale-libs/external/enums"
 	"github.com/dysnix/ai-scale-libs/external/grpc/zstd_compressor"
-	_ "github.com/dysnix/ai-scale-libs/external/grpc/zstd_compressor"
 )
 
 const (
@@ -28,8 +29,6 @@ func SetGrpcClientOptions(conf *configs.GRPC, baseConf *configs.Base, internalIn
 
 	if conf.Keepalive != nil {
 		options = append(options,
-			//grpc.WithDefaultCallOptions(grpc.UseCompressor(gzip.Name)),
-			//grpc.WithDefaultCallOptions(grpc.UseCompressor(zstd_compressor.Name)),
 			grpc.WithKeepaliveParams(
 				keepalive.ClientParameters{
 					Time:                conf.Keepalive.Time,
