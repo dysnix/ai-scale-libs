@@ -16,7 +16,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/connectivity"
-	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/status"
 
 	libs "github.com/dysnix/ai-scale-libs/external/configs"
@@ -193,7 +192,7 @@ func (s *FastHttpServer) liveness(ctx *fasthttp.RequestCtx) {
 }
 
 func (s *FastHttpServer) readiness(ctx *fasthttp.RequestCtx) {
-	_, err := grpc_health_v1.NewHealthClient(s.grpcConn).Check(ctx, &grpc_health_v1.HealthCheckRequest{
+	_, err := health.NewHealthClient(s.grpcConn).Check(ctx, &health.HealthCheckRequest{
 		Service: "_",
 	})
 
