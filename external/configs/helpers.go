@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -126,6 +127,63 @@ func SetupSignalHandler(l ...interface{}) context.Context {
 	}()
 
 	return ctx
+}
+
+func closeAll(l ...interface{}) {
+	for _, cl := range l {
+		switch closer := cl.(type) {
+		case SignalStopper:
+			closer.Stop()
+		case SignalCloser:
+			closer.Close()
+		case SignalCloserWithErr:
+			err := closer.Close()
+			if err != nil {
+				switch logger := l[len(l)-1].(type) {
+				case *zap.SugaredLogger:
+					logger.Errorf("🔥 close SignalCloserWithErr object type: %T, error: %v", closer, err)
+				case *log.Logger:
+					logger.Printf("🔥 close SignalCloserWithErr object type: %T, error: %v", closer, err)
+				}
+			}
+		case SignalStopperWithErr:
+			err := closer.Stop()
+			if err != nil {
+				switch logger := l[len(l)-1].(type) {
+				case *zap.SugaredLogger:
+					logger.Errorf("🔥 stop SignalStopperWithErr object type: %T, error: %v", closer, err)
+				case *log.Logger:
+					logger.Printf("🔥 stop SignalStopperWithErr object type: %T, error: %v", closer, err)
+				}
+			}
+		}
+	}
+}
+
+var doOnce sync.Once
+
+func OsSignalHandler(cancel context.CancelFunc, l ...interface{}) {
+	doOnce.Do(func() {
+		var Stop = make(chan os.Signal, 1)
+
+		signal.Notify(Stop,
+			syscall.SIGTERM,
+			syscall.SIGINT,
+			syscall.SIGABRT,
+		)
+
+		for range Stop {
+			if cancel != nil {
+				cancel()
+			}
+
+			closeAll(l...)
+
+			return
+		}
+	})
+
+	//ctx, cancel := context.WithCancel(context.Background())
 }
 
 const (
