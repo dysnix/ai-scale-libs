@@ -162,7 +162,7 @@ func closeAll(l ...interface{}) {
 
 var doOnce sync.Once
 
-func OsSignalHandler(cancel context.CancelFunc, l ...interface{}) {
+func OsSignalHandler(cancel context.CancelFunc, callbacks []func(), l ...interface{}) {
 	doOnce.Do(func() {
 		var Stop = make(chan os.Signal, 1)
 
@@ -178,6 +178,10 @@ func OsSignalHandler(cancel context.CancelFunc, l ...interface{}) {
 			}
 
 			closeAll(l...)
+
+			for _, callback := range callbacks {
+				callback()
+			}
 
 			return
 		}
