@@ -2,13 +2,14 @@ package configs
 
 import (
 	"context"
+	"reflect"
+	"strings"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/robfig/cron/v3"
 	passwordvalidator "github.com/wagslane/go-password-validator"
 	"github.com/xhit/go-str2duration/v2"
-	"reflect"
-	"strings"
 )
 
 const (
