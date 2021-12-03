@@ -29,7 +29,7 @@ type fastHttpLogger struct {
 }
 
 func (l *fastHttpLogger) Printf(format string, args ...interface{}) {
-	l.SugaredLogger.Errorf(format, args...)
+	l.SugaredLogger.Debugf(format, args...)
 }
 
 var (
@@ -62,27 +62,29 @@ func NewFastHttpServer(options ...libs.Option) (out *FastHttpServer, err error) 
 		}
 	}
 
-	if out.grpcConn == nil {
-		// grpc client for ping with some service
-		var grpcClientOpt []grpc.DialOption
-		if out.conf.GetClient() != nil {
-			grpcClientOpt, err = client.SetGrpcClientOptions(out.conf.GetGrpc(), out.conf.GetBase(), client.InjectClientMetadataInterceptor(*out.conf.GetClient()))
-		} else {
-			grpcClientOpt, err = client.SetGrpcClientOptions(out.conf.GetGrpc(), out.conf.GetBase())
+	if out.conf.GetGrpc() != nil {
+		if out.grpcConn == nil {
+			// grpc client for ping with some service
+			var grpcClientOpt []grpc.DialOption
+			if out.conf.GetClient() != nil {
+				grpcClientOpt, err = client.SetGrpcClientOptions(out.conf.GetGrpc(), out.conf.GetBase(), client.InjectClientMetadataInterceptor(*out.conf.GetClient()))
+			} else {
+				grpcClientOpt, err = client.SetGrpcClientOptions(out.conf.GetGrpc(), out.conf.GetBase())
+			}
+
+			if err != nil {
+				return nil, err
+			}
+
+			out.grpcConn, err = grpc.Dial(fmt.Sprintf("%s:%d", out.conf.GetGrpc().Conn.Host, out.conf.GetGrpc().Conn.Port), grpcClientOpt...)
+			if err != nil {
+				return nil, err
+			}
 		}
 
-		if err != nil {
-			return nil, err
-		}
-
-		out.grpcConn, err = grpc.Dial(fmt.Sprintf("%s:%d", out.conf.GetGrpc().Conn.Host, out.conf.GetGrpc().Conn.Port), grpcClientOpt...)
-		if err != nil {
-			return nil, err
-		}
+		out.grpcClient = health.NewHealthClient(out.grpcConn)
+		out.createConn = true
 	}
-
-	out.grpcClient = health.NewHealthClient(out.grpcConn)
-	out.createConn = true
 
 	return out, nil
 }
@@ -104,8 +106,10 @@ func (s *FastHttpServer) SetGrpcClientConn(conn *grpc.ClientConn) {
 func (s *FastHttpServer) routing() *router.Router {
 	r := router.New()
 
-	r.GET("/healthz", s.liveness)
-	r.GET("/readyz", s.readiness)
+	if s.conf.GetGrpc() != nil {
+		r.GET("/healthz", s.liveness)
+		r.GET("/readyz", s.readiness)
+	}
 
 	if s.conf.GetBase().Monitoring.Enabled {
 		// metrics
@@ -151,7 +155,7 @@ func (s *FastHttpServer) Start() <-chan error {
 	go func() {
 		defer close(errCh)
 		if s.conf.GetBase().Single != nil && s.conf.GetBase().Single.Enabled {
-			s.logger.Info("✔️ FataHttp server started.")
+			s.logger.Info("✔️ FastHttp server started.")
 			if err := s.server.ListenAndServe(fmt.Sprintf("%s:%d", s.conf.GetBase().Single.Host, s.conf.GetBase().Single.Port)); err != nil {
 				if s.conf.GetBase().IsDebugMode {
 					s.logger.Errorw(err.Error(), "serving fasthttp server with error")
