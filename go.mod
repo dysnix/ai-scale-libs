@@ -7,7 +7,7 @@ require (
 	github.com/brianvoe/gofakeit/v6 v6.9.0
 	github.com/bxcodec/faker/v3 v3.6.0
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
-	github.com/dysnix/ai-scale-proto v0.0.0-20211102103649-e7e5e2baecd8
+	github.com/dysnix/ai-scale-proto v0.0.0-20211206170911-3997d204d1bf
 	github.com/fasthttp/router v1.4.4
 	github.com/go-playground/validator/v10 v10.9.0
 	github.com/golang/protobuf v1.5.2
