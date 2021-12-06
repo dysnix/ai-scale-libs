@@ -18,3 +18,12 @@ const (
 	Enable  SSLMode = iota // SSLMode postgres connection string sslmode Enable
 	Disable                // SSLMode postgres connection string sslmode Disable
 )
+
+//go:generate go-enum -type=DeletionType
+// DeletionType is type of gorm delete action
+type DeletionType int
+
+const (
+	Hard DeletionType = iota // Hard type of gorm model delete action (anyway)
+	Soft                     // Soft type of gorm model delete action (change deleted_at field only)
+)
