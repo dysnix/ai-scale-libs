@@ -27,3 +27,13 @@ const (
 	Hard DeletionType = iota // Hard type of gorm model delete action (anyway)
 	Soft                     // Soft type of gorm model delete action (change deleted_at field only)
 )
+
+//go:generate go-enum -type=KindType
+// KindType is kind of kubernetes apps/v1 resource
+type KindType int
+
+const (
+	Deployment  KindType = iota // Deployment kind
+	StatefulSet                 // StatefulSet kind
+	DaemonSet                   // DaemonSet kind
+)
