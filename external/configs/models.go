@@ -2,6 +2,7 @@ package configs
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	str2duration "github.com/xhit/go-str2duration/v2"
@@ -708,6 +709,117 @@ func (t *HTTPTransport) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 
 	t.WriteTimeout, err = str2duration.ParseDuration(tmp.WriteTimeout)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+type Postgres struct {
+	Username string        `validate:"ascii"`
+	Password string        `validate:"ascii"`
+	Database string        `validate:"required,ascii"`
+	Host     string        `validate:"grpc_host"`
+	Port     uint16        `validate:"required,gt=0"`
+	Schema   string        `validate:"alphanum"`
+	SSLMode  enums.SSLMode `validate:"required"`
+	Pool     *Pool         `yaml:"pool" json:"pool" validate:"required"`
+}
+
+func (pg *Postgres) Dsn() string {
+	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", pg.Host, pg.Port, pg.Username, pg.Password, pg.Database)
+}
+
+type Pool struct {
+	MaxIdleConns    int           `yaml:"maxIdleConns" json:"max_idle_conns" validate:"required,gt=0"`
+	MaxOpenConns    int           `yaml:"maxOpenConns" json:"max_open_conns" validate:"required,gt=0"`
+	ConnMaxLifetime time.Duration `yaml:"connMaxLifetime" json:"conn_max_lifetime" validate:"required,gt=0"`
+}
+
+func (p *Pool) MarshalYAML() (interface{}, error) {
+	type alias struct {
+		MaxIdleConns    int    `yaml:"maxIdleConns" json:"max_idle_conns"`
+		MaxOpenConns    int    `yaml:"maxOpenConns" json:"max_open_conns"`
+		ConnMaxLifetime string `yaml:"connMaxLifetime" json:"conn_max_lifetime"`
+	}
+
+	if p == nil {
+		*p = Pool{}
+	}
+
+	return alias{
+		MaxIdleConns:    p.MaxIdleConns,
+		MaxOpenConns:    p.MaxOpenConns,
+		ConnMaxLifetime: HumanDuration(p.ConnMaxLifetime),
+	}, nil
+}
+
+func (p *Pool) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type alias struct {
+		MaxIdleConns    int    `yaml:"maxIdleConns" json:"max_idle_conns"`
+		MaxOpenConns    int    `yaml:"maxOpenConns" json:"max_open_conns"`
+		ConnMaxLifetime string `yaml:"connMaxLifetime" json:"conn_max_lifetime"`
+	}
+	var tmp alias
+	err := unmarshal(&tmp)
+	if err != nil {
+		return err
+	}
+
+	if p == nil {
+		*p = Pool{}
+	}
+
+	p.MaxIdleConns = tmp.MaxIdleConns
+	p.MaxOpenConns = tmp.MaxOpenConns
+
+	p.ConnMaxLifetime, err = str2duration.ParseDuration(tmp.ConnMaxLifetime)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *Pool) MarshalJSON() ([]byte, error) {
+	type alias struct {
+		MaxIdleConns    int    `yaml:"maxIdleConns" json:"max_idle_conns"`
+		MaxOpenConns    int    `yaml:"maxOpenConns" json:"max_open_conns"`
+		ConnMaxLifetime string `yaml:"connMaxLifetime" json:"conn_max_lifetime"`
+	}
+
+	if p == nil {
+		*p = Pool{}
+	}
+
+	return json.Marshal(alias{
+		MaxIdleConns:    p.MaxIdleConns,
+		MaxOpenConns:    p.MaxOpenConns,
+		ConnMaxLifetime: HumanDuration(p.ConnMaxLifetime),
+	})
+}
+
+func (p *Pool) UnmarshalJSON(data []byte) (err error) {
+	type alias struct {
+		MaxIdleConns    int    `yaml:"maxIdleConns" json:"max_idle_conns"`
+		MaxOpenConns    int    `yaml:"maxOpenConns" json:"max_open_conns"`
+		ConnMaxLifetime string `yaml:"connMaxLifetime" json:"conn_max_lifetime"`
+	}
+
+	var tmp alias
+	if err = json.Unmarshal(data, &tmp); err != nil {
+		return err
+	}
+
+	if p == nil {
+		*p = Pool{}
+	}
+
+	p.MaxIdleConns = tmp.MaxIdleConns
+	p.MaxOpenConns = tmp.MaxOpenConns
+
+	p.ConnMaxLifetime, err = str2duration.ParseDuration(tmp.ConnMaxLifetime)
 	if err != nil {
 		return err
 	}
