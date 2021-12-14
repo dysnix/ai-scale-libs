@@ -6,8 +6,6 @@ import (
 	"time"
 )
 
-var Epoch = time.Unix(0, 0)
-
 const (
 	ZeroDurationErr = "zero time duration"
 )
@@ -43,7 +41,7 @@ func ParseMillisecondUnixTimestamp(s interface{}) (res time.Time, err error) {
 	}
 
 	if ts > 0 {
-		return Epoch.Add(time.Duration(ts) * time.Millisecond), nil
+		return time.Unix(0, 0).Add(time.Duration(ts) * time.Millisecond), nil
 	}
 
 	return res, errors.New(ZeroDurationErr)
