@@ -40,11 +40,15 @@ func ParseMillisecondUnixTimestamp(s interface{}) (res time.Time, err error) {
 		ts = int64(tmp)
 	}
 
-	if ts > 0 {
-		sec := ts / 1000
-		msec := ts % 1000
+	//if ts > 0 {
+	//	sec := ts / 1000
+	//	msec := ts % 1000
+	//
+	//	return time.Unix(sec, msec*int64(time.Millisecond)), nil
+	//}
 
-		return time.Unix(sec, msec*int64(time.Millisecond)), nil
+	if ts > 0 {
+		return time.Unix(ts, 0), nil
 	}
 
 	return res, errors.New(ZeroDurationErr)
