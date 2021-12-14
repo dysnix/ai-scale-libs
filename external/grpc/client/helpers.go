@@ -63,8 +63,10 @@ func SetGrpcClientOptions(conf *configs.GRPC, baseConf *configs.Base, internalIn
 
 	if conf.Conn.MaxMessageSize > 0 {
 		options = append(options, grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(int(conf.Conn.MaxMessageSize))))
+		options = append(options, grpc.WithDefaultCallOptions(grpc.MaxCallSendMsgSize(int(conf.Conn.MaxMessageSize))))
 	} else {
 		options = append(options, grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(DefaultMaxMsgSize)))
+		options = append(options, grpc.WithDefaultCallOptions(grpc.MaxCallSendMsgSize(DefaultMaxMsgSize)))
 	}
 
 	if conf.Conn.Insecure {
