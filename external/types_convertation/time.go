@@ -4,6 +4,8 @@ import (
 	"errors"
 	"strconv"
 	"time"
+
+	"github.com/ulikunitz/unixtime"
 )
 
 const (
@@ -41,7 +43,14 @@ func ParseMillisecondUnixTimestamp(s interface{}) (res time.Time, err error) {
 	}
 
 	if ts > 0 {
-		return time.Unix(0, 0).Add(time.Duration(ts) * time.Millisecond), nil
+		tmp := unixtime.FromMilli(ts)
+		if tmp.IsZero() || tmp.Equal(time.Unix(0, 0)) ||
+			tmp.Sub(time.Unix(0, 0)) < time.Hour*8760 {
+
+			return time.Unix(0, 0).Add(time.Duration(ts) * time.Second), nil
+		}
+
+		return tmp, nil
 	}
 
 	return res, errors.New(ZeroDurationErr)
