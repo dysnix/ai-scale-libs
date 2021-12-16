@@ -21,6 +21,7 @@ const (
 	DurationTag             = "duration"
 	PassEntropyTag          = "pass_entropy"
 	UUIDIfNotEmptyTag       = "uuid_if_not_empty"
+	JWTIfNotEmptyTag        = "jwt_if_not_empty"
 )
 
 var (
@@ -30,10 +31,6 @@ var (
 
 // RegisterCustomValidationsTags registers all custom validation tags
 func RegisterCustomValidationsTags(ctx context.Context, validator *validator.Validate, in map[string]func(fl validator.FieldLevel) bool, configs interface{}) (err error) {
-	//errCh := make(chan error, 1)
-	//defer close(errCh)
-
-	//doOnce.Do(func() {
 	for tag, _ := range in {
 		newTag := tag
 		newCallback := in[tag]
@@ -79,16 +76,13 @@ func RegisterCustomValidationsTags(ctx context.Context, validator *validator.Val
 	}
 
 	if err = validator.RegisterValidation(UUIDIfNotEmptyTag, ValidateUUIDIfNotEmpty); err != nil {
+		return err
+	}
+
+	if err = validator.RegisterValidation(JWTIfNotEmptyTag, ValidateJWTIfNotEmpty(validator)); err != nil {
 		//errCh <- err
 		return err
 	}
-	//})
-
-	//select {
-	//case err = <-errCh:
-	//default:
-	//	return nil
-	//}
 
 	return err
 }
@@ -261,4 +255,19 @@ func ValidateUUIDIfNotEmpty(fl validator.FieldLevel) bool {
 		return false
 	}
 	return true
+}
+
+// ValidateJWTIfNotEmpty implements validator.Func for validate JWT token if it not empty
+func ValidateJWTIfNotEmpty(validatorMain *validator.Validate) func(level validator.FieldLevel) bool {
+	return func(fl validator.FieldLevel) bool {
+		field := fl.Field().String()
+		if len(field) > 0 {
+			if err := validatorMain.Var(field, "jwt"); err == nil {
+				return true
+			}
+
+			return false
+		}
+		return true
+	}
 }
