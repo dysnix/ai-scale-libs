@@ -32,6 +32,19 @@ func InjectClientMetadataInterceptor(conf configs.Client) grpc.UnaryClientInterc
 	}
 }
 
+func InjectPublicClientMetadataInterceptor(apiKey string) grpc.UnaryClientInterceptor {
+	return func(
+		ctx context.Context,
+		method string,
+		req, reply interface{},
+		cc *grpc.ClientConn,
+		invoker grpc.UnaryInvoker,
+		opts ...grpc.CallOption,
+	) (err error) {
+		return invoker(metadata.AppendToOutgoingContext(ctx, grpcC.APIKey, apiKey), method, req, reply, cc, opts...)
+	}
+}
+
 func PanicClientInterceptor(handler func(ctx context.Context, err error, params ...interface{}) error, params ...interface{}) grpc.UnaryClientInterceptor {
 	return func(
 		ctx context.Context,
