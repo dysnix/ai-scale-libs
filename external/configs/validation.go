@@ -85,7 +85,7 @@ func RegisterCustomValidationsTags(ctx context.Context, validator *validator.Val
 		return err
 	}
 
-	if err = validator.RegisterValidation(JWTIfNotEmptyTag, ValidateEmailIfNotEmpty(validator)); err != nil {
+	if err = validator.RegisterValidation(EmailIfNotEmpty, ValidateEmailIfNotEmpty(validator)); err != nil {
 		//errCh <- err
 		return err
 	}
