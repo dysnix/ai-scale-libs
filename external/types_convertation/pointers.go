@@ -34,3 +34,14 @@ func Int32Ptr(v *int32) int32 {
 	}
 	return 0
 }
+
+func Uint(v uint) *uint {
+	return &v
+}
+
+func UintPtr(v *uint) uint {
+	if v != nil {
+		return *v
+	}
+	return 0
+}
