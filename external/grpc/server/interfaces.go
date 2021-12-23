@@ -1,7 +1,7 @@
 package server
 
 import (
-	pb "github.com/dysnix/ai-scale-proto/external/proto/health"
+	pb "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 type Server interface {

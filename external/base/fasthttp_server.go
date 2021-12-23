@@ -21,7 +21,7 @@ import (
 	libs "github.com/dysnix/ai-scale-libs/external/configs"
 	"github.com/dysnix/ai-scale-libs/external/grpc/client"
 	libsSrv "github.com/dysnix/ai-scale-libs/external/grpc/server"
-	"github.com/dysnix/ai-scale-proto/external/proto/health"
+	health "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 type fastHttpLogger struct {
